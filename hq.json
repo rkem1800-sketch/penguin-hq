@@ -1,0 +1,507 @@
+{
+ "updated": "2026-11-15",
+ "jobsNote": "Jobs are the last known from each bot's chat. They may have changed.",
+ "areas": [
+  {
+   "id": "sales",
+   "name": "Sales",
+   "emoji": "💰",
+   "color": "#ffb020"
+  },
+  {
+   "id": "ops",
+   "name": "Operations & Field",
+   "emoji": "🛠️",
+   "color": "#22c7a9"
+  },
+  {
+   "id": "money",
+   "name": "Money",
+   "emoji": "📊",
+   "color": "#4ade80"
+  },
+  {
+   "id": "marketing",
+   "name": "Marketing",
+   "emoji": "📣",
+   "color": "#ff5c8a"
+  },
+  {
+   "id": "people",
+   "name": "People & Hiring",
+   "emoji": "🤝",
+   "color": "#a78bfa"
+  },
+  {
+   "id": "systems",
+   "name": "Systems & Admin",
+   "emoji": "🧠",
+   "color": "#38bdf8"
+  },
+  {
+   "id": "training",
+   "name": "Training & Videos",
+   "emoji": "🎓",
+   "color": "#fb923c"
+  },
+  {
+   "id": "personal",
+   "name": "Personal",
+   "emoji": "🌴",
+   "color": "#f472b6"
+  }
+ ],
+ "bots": [
+  {
+   "id": "25913e09-d26a-4388-81eb-79e5c83fbaa9",
+   "name": "Grok Bot",
+   "area": "systems",
+   "emoji": "🐧",
+   "role": "Your main bot. Give it any job and it hands it to the right bot.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=25913e09-d26a-4388-81eb-79e5c83fbaa9"
+  },
+  {
+   "id": "00b82e27-8954-4d2f-a136-276abf8a2c53",
+   "name": "Ops CEO",
+   "area": "ops",
+   "emoji": "🧭",
+   "role": "Plans the year and each quarter: crew, seasons, offers.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=00b82e27-8954-4d2f-a136-276abf8a2c53"
+  },
+  {
+   "id": "ba9e0b12-a7d0-4dd2-92a4-f3db6ea95688",
+   "name": "Adam – Field Admin",
+   "area": "ops",
+   "emoji": "📋",
+   "role": "Answers job questions from ServiceTitan while you're on calls or driving.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=ba9e0b12-a7d0-4dd2-92a4-f3db6ea95688"
+  },
+  {
+   "id": "5455c5e6-f272-4355-8dca-8c24635e2b90",
+   "name": "ServiceTitan Scheduler",
+   "area": "ops",
+   "emoji": "📅",
+   "role": "Checks the schedule and booked jobs in ServiceTitan.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=5455c5e6-f272-4355-8dca-8c24635e2b90"
+  },
+  {
+   "id": "5fc91739-c7e5-42a7-9cab-05bbde3ce604",
+   "name": "ServiceTitan Tech Rating",
+   "area": "ops",
+   "emoji": "⭐",
+   "role": "Scores techs and sales from ServiceTitan numbers.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=5fc91739-c7e5-42a7-9cab-05bbde3ce604"
+  },
+  {
+   "id": "58cd8df1-9caa-45d1-abb1-54e19cda15e8",
+   "name": "STCleanup",
+   "area": "ops",
+   "emoji": "🧹",
+   "role": "Cleans up ServiceTitan data: duplicates, credits, tags.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=58cd8df1-9caa-45d1-abb1-54e19cda15e8"
+  },
+  {
+   "id": "b3be7cab-6486-481c-983a-5d37ff7f2129",
+   "name": "Fred – Fleet",
+   "area": "ops",
+   "emoji": "🚚",
+   "role": "Keeps the truck list: drivers, repairs, insurance, fuel.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Weekdays ~9 AM & 3 PM",
+     "what": "Truck-repair email check (until the Transit is back)",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=b3be7cab-6486-481c-983a-5d37ff7f2129"
+  },
+  {
+   "id": "a5bb6365-0bfe-49d5-8350-8759fc0951a7",
+   "name": "Paige – Purchasing",
+   "area": "ops",
+   "emoji": "📦",
+   "role": "Vendors, POs, orders, warranties and returns.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Mondays ~7 AM",
+     "what": "PO and sales-tax report to #alerts",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=a5bb6365-0bfe-49d5-8350-8759fc0951a7"
+  },
+  {
+   "id": "09ffa82b-5c45-435a-a6ed-47c662a890ad",
+   "name": "Plumbing Help",
+   "area": "training",
+   "emoji": "🚰",
+   "role": "Plumbing repair help on the job: diagnosis, parts, NC code.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=09ffa82b-5c45-435a-a6ed-47c662a890ad"
+  },
+  {
+   "id": "02818ca4-932b-4347-9e87-7025c4b1dd7f",
+   "name": "Eric Sales",
+   "area": "sales",
+   "emoji": "🤝",
+   "role": "Sales and install help for field manager Eric Stamper.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=02818ca4-932b-4347-9e87-7025c4b1dd7f"
+  },
+  {
+   "id": "2b15e4a6-a7cb-4c27-9b04-005741a6cd63",
+   "name": "Abby – Missed Calls",
+   "area": "sales",
+   "emoji": "📞",
+   "role": "Spots abandoned calls so nobody slips through.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Every 5 min, 8 AM–8 PM",
+     "what": "Abandoned call check",
+     "status": "paused"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=2b15e4a6-a7cb-4c27-9b04-005741a6cd63"
+  },
+  {
+   "id": "1c16ba10-3fa3-4bac-8087-2873bc2be0e3",
+   "name": "Growth Partner",
+   "area": "sales",
+   "emoji": "🚀",
+   "role": "Your business growth partner.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=1c16ba10-3fa3-4bac-8087-2873bc2be0e3"
+  },
+  {
+   "id": "10f95832-ee4b-4be2-88dc-fa8434bcf25d",
+   "name": "Quinn – Bookkeeper",
+   "area": "money",
+   "emoji": "📗",
+   "role": "Keeps QuickBooks clean. Nothing posts without your yes.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Weekdays ~7 AM",
+     "what": "QuickBooks and new-bills check to #alerts",
+     "status": "on"
+    },
+    {
+     "when": "Mondays ~7 AM",
+     "what": "Bills-due reminder to #alerts",
+     "status": "on"
+    },
+    {
+     "when": "Weekdays ~9 AM, 1 PM, 5 PM",
+     "what": "Financing payment watch (until Dec 1)",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=10f95832-ee4b-4be2-88dc-fa8434bcf25d"
+  },
+  {
+   "id": "94c58822-faf5-4176-8b50-8f0dad9a4b02",
+   "name": "Bud – Budget",
+   "area": "money",
+   "emoji": "🧮",
+   "role": "The company budget and 2027 growth plan.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=94c58822-faf5-4176-8b50-8f0dad9a4b02"
+  },
+  {
+   "id": "e3164005-8f10-4b0b-b6be-ae269a6d5a0c",
+   "name": "Fiona – Financing",
+   "area": "money",
+   "emoji": "🏦",
+   "role": "Tracks customer financing applications and dealer fees.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=e3164005-8f10-4b0b-b6be-ae269a6d5a0c"
+  },
+  {
+   "id": "2f9d0a2b-fcc0-49cb-a70f-68cbb1ddf950",
+   "name": "Harry – HVAC Pricing",
+   "area": "money",
+   "emoji": "🏷️",
+   "role": "Builds and keeps HVAC prices up to date.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=2f9d0a2b-fcc0-49cb-a70f-68cbb1ddf950"
+  },
+  {
+   "id": "1028befb-97cb-4e3b-b6e9-805f37bb063f",
+   "name": "Mick – Marketing",
+   "area": "marketing",
+   "emoji": "📣",
+   "role": "Runs the in-house marketing plan: ads, reviews, posts.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=1028befb-97cb-4e3b-b6e9-805f37bb063f"
+  },
+  {
+   "id": "6ec14000-82e9-4529-8f3a-a09c835ca6f4",
+   "name": "Competitor Watch",
+   "area": "marketing",
+   "emoji": "🔭",
+   "role": "Watches competitor sites and tells you what changed.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Mondays 9 AM",
+     "what": "Weekly competitor brief",
+     "status": "paused"
+    },
+    {
+     "when": "Weekdays 9 AM",
+     "what": "Daily launch check",
+     "status": "paused"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=6ec14000-82e9-4529-8f3a-a09c835ca6f4"
+  },
+  {
+   "id": "43451fcd-0b69-4355-9456-74db9694cc45",
+   "name": "Paid Media room",
+   "area": "marketing",
+   "emoji": "💬",
+   "role": "Group chat: you, Paul (Paid Media) and Ops CEO.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=43451fcd-0b69-4355-9456-74db9694cc45"
+  },
+  {
+   "id": "ce7a5171-19f2-4e8f-a7d1-aa5d498a6f77",
+   "name": "Holly – HR & Training",
+   "area": "people",
+   "emoji": "🌱",
+   "role": "Hiring, onboarding and training for the team.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=ce7a5171-19f2-4e8f-a7d1-aa5d498a6f77"
+  },
+  {
+   "id": "e30eeb91-781d-41cc-956b-50af8c9eab08",
+   "name": "Hiring Recruiter",
+   "area": "people",
+   "emoji": "🧲",
+   "role": "Indeed applicants, screening and interviews.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=e30eeb91-781d-41cc-956b-50af8c9eab08"
+  },
+  {
+   "id": "d7e0341c-76b0-423f-b615-d9565de15958",
+   "name": "Ivan – IT & Systems",
+   "area": "systems",
+   "emoji": "🖥️",
+   "role": "Keeps your apps connected and working.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=d7e0341c-76b0-423f-b615-d9565de15958"
+  },
+  {
+   "id": "9fec1375-6bbb-4024-8d2e-b7d41bc78cd1",
+   "name": "Email Desk",
+   "area": "systems",
+   "emoji": "📬",
+   "role": "Sorts company email and flags what matters.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Weekdays, hourly 8 AM–6 PM",
+     "what": "Inbox triage",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=9fec1375-6bbb-4024-8d2e-b7d41bc78cd1"
+  },
+  {
+   "id": "c14ce67a-dd13-48cf-a8fa-aa07f233a39a",
+   "name": "Connie – Compliance",
+   "area": "systems",
+   "emoji": "🛡️",
+   "role": "Licenses, insurance and risk. Warns before things expire.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "Weekdays ~8 AM",
+     "what": "Due-date check to #alerts",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=c14ce67a-dd13-48cf-a8fa-aa07f233a39a"
+  },
+  {
+   "id": "e908017f-1e2a-422e-8c5e-915abdc01732",
+   "name": "Phone with Bland",
+   "area": "systems",
+   "emoji": "☎️",
+   "role": "Gives your bots a phone number and voice.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=e908017f-1e2a-422e-8c5e-915abdc01732"
+  },
+  {
+   "id": "73b692ba-e3a6-48c0-9b21-edd7ccc2efa2",
+   "name": "Hank – HVAC Repair",
+   "area": "training",
+   "emoji": "🔧",
+   "role": "HVAC repair help and tech training.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=73b692ba-e3a6-48c0-9b21-edd7ccc2efa2"
+  },
+  {
+   "id": "e268dc2f-db18-426d-96c8-8e656af9ba91",
+   "name": "Many – Maintenance Visit",
+   "area": "training",
+   "emoji": "✅",
+   "role": "Step-by-step heating check for maintenance visits.",
+   "kind": "work",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=e268dc2f-db18-426d-96c8-8e656af9ba91"
+  },
+  {
+   "id": "f748d2df-a214-47d7-a970-7a5bed8e87fd",
+   "name": "Summer – Videos",
+   "area": "training",
+   "emoji": "🎬",
+   "role": "Sums up videos and fills your Video Library.",
+   "kind": "work",
+   "jobs": [
+    {
+     "when": "When you tap Send in Video Library",
+     "what": "Add a pasted video",
+     "status": "on"
+    }
+   ],
+   "chat": "grokbot://app/v1/agent?id=f748d2df-a214-47d7-a970-7a5bed8e87fd"
+  },
+  {
+   "id": "694d7a39-0f0f-4fea-bc7f-398a1d3800bd",
+   "name": "Crypto Tracker",
+   "area": "personal",
+   "emoji": "🪙",
+   "role": "Tracks your crypto and net worth.",
+   "kind": "personal",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=694d7a39-0f0f-4fea-bc7f-398a1d3800bd"
+  },
+  {
+   "id": "7bc5d54b-aef2-4b9a-90ad-1321548a496b",
+   "name": "Life Plan",
+   "area": "personal",
+   "emoji": "🗺️",
+   "role": "Your life plan and strategy.",
+   "kind": "personal",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=7bc5d54b-aef2-4b9a-90ad-1321548a496b"
+  },
+  {
+   "id": "3a8ffb1f-c758-4900-862f-3ac934e672fd",
+   "name": "Cocktail Maker",
+   "area": "personal",
+   "emoji": "🍸",
+   "role": "Drink recipes and your Drink Library.",
+   "kind": "personal",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=3a8ffb1f-c758-4900-862f-3ac934e672fd"
+  },
+  {
+   "id": "a05c593d-ba19-4ff1-a7a0-e9d7e071e9cb",
+   "name": "Slash – Guitar",
+   "area": "personal",
+   "emoji": "🎸",
+   "role": "Your guitar trainer.",
+   "kind": "personal",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=a05c593d-ba19-4ff1-a7a0-e9d7e071e9cb"
+  }
+ ],
+ "links": [
+  {
+   "name": "Video Library",
+   "emoji": "🎬",
+   "url": "https://rkem1800-sketch.github.io/video-library/",
+   "color": "#e1306c"
+  },
+  {
+   "name": "Drink Library",
+   "emoji": "🍸",
+   "url": "https://rkem1800-sketch.github.io/drink-library/",
+   "color": "#8b5cf6"
+  },
+  {
+   "name": "Penguin website",
+   "emoji": "🐧",
+   "url": "https://penguincool.com",
+   "color": "#0ea5e9"
+  },
+  {
+   "name": "ServiceTitan",
+   "emoji": "🔧",
+   "url": "https://go.servicetitan.com",
+   "color": "#2563eb"
+  },
+  {
+   "name": "QuickBooks",
+   "emoji": "📗",
+   "url": "https://qbo.intuit.com",
+   "color": "#22c55e"
+  },
+  {
+   "name": "HighLevel",
+   "emoji": "🚀",
+   "url": "https://app.gohighlevel.com",
+   "color": "#f59e0b"
+  },
+  {
+   "name": "Slack",
+   "emoji": "💬",
+   "url": "https://app.slack.com",
+   "color": "#e01e5a"
+  },
+  {
+   "name": "Gmail",
+   "emoji": "✉️",
+   "url": "https://mail.google.com",
+   "color": "#ea4335"
+  },
+  {
+   "name": "Notion",
+   "emoji": "📝",
+   "url": "https://www.notion.so",
+   "color": "#64748b"
+  },
+  {
+   "name": "Canva",
+   "emoji": "🎨",
+   "url": "https://www.canva.com",
+   "color": "#00c4cc"
+  },
+  {
+   "name": "Cloudflare",
+   "emoji": "☁️",
+   "url": "https://dash.cloudflare.com",
+   "color": "#f38020"
+  }
+ ]
+}

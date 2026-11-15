@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070a14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HQ">
+  <title>Penguin HQ</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./favicon.png" type="image/png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #070a14; --elev: #121626; --elev-2: #1a1f33;
+  --ink: #f5f7ff; --soft: #d6dcf0; --muted: #96a0bd;
+  --gold: #ffd60a; --teal: #22c7a9; --blue: #3b82f6; --pink: #ff5c8a;
+  --line: rgba(150,170,255,0.16);
+  --sans: "Outfit", ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --serif: "Fraunces", Georgia, serif;
+  --tab-h: 70px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+html { background: var(--bg); }
+body {
+  font-family: var(--sans); color: var(--ink); font-size: 18px; line-height: 1.4;
+  background:
+    radial-gradient(800px 460px at 0% -10%, rgba(34,199,169,0.22), transparent 60%),
+    radial-gradient(800px 480px at 100% 0%, rgba(59,130,246,0.22), transparent 60%),
+    radial-gradient(700px 520px at 100% 100%, rgba(124,58,237,0.18), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+a { color: inherit; }
+.app-header { position: sticky; top: 0; z-index: 20; padding: calc(10px + env(safe-area-inset-top)) 18px 10px;
+  background: linear-gradient(to bottom, rgba(7,10,20,0.97) 60%, rgba(7,10,20,0.75) 85%, transparent);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.header-inner { max-width: 600px; margin: 0 auto; position: relative; padding-right: 50px; display: flex; gap: 12px; align-items: center; }
+.header-inner img { width: 50px; height: 50px; border-radius: 14px; box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+.kicker { margin: 0; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); font-weight: 700; }
+h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacing: -0.03em; margin: 0; line-height: 1.05; }
+.gear { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--elev); display: flex; align-items: center; justify-content: center; color: var(--soft); }
+.gear svg { width: 22px; height: 22px; }
+.gear .dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); border: 2px solid var(--bg); }
+.gear .dot.on { background: #4ade80; }
+.main { padding: 4px 16px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom)); max-width: 600px; margin: 0 auto; }
+.panel { display: none; animation: rise 0.35s ease both; }
+.panel.active { display: block; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.sec-h { font-family: var(--serif); font-size: 1.45rem; font-weight: 700; margin: 24px 0 12px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+.sec-h .n { font-family: var(--sans); font-size: 0.8rem; font-weight: 700; color: var(--muted); background: var(--elev); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
+
+/* Brief */
+.brief { border-radius: 26px; padding: 20px 20px 18px; position: relative; overflow: hidden; margin-top: 8px;
+  background: linear-gradient(140deg, #ffb020 0%, #ff5c8a 52%, #7c3aed 100%); color: #fff; box-shadow: 0 16px 40px rgba(255,92,138,0.28); }
+.brief::after { content: ""; position: absolute; right: -60px; top: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+.brief .lbl { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 800; opacity: 0.92; }
+.brief h2 { font-family: var(--serif); font-size: 1.6rem; line-height: 1.15; margin: 6px 0 0; position: relative; z-index: 1; }
+.brief ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; position: relative; z-index: 1; }
+.brief li { background: rgba(0,0,0,0.18); border-radius: 16px; padding: 11px 13px; font-size: 1.08rem; display: flex; gap: 10px; align-items: flex-start; }
+.brief li .e { font-size: 1.3rem; line-height: 1.1; }
+.brief li a { text-decoration: none; font-weight: 700; font-size: 0.85rem; background: rgba(255,255,255,0.22); padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.brief .foot { margin-top: 12px; font-size: 0.85rem; opacity: 0.9; position: relative; z-index: 1; }
+.brief button { margin-top: 14px; border: 0; background: #fff; color: #7c3aed; font-weight: 800; border-radius: 14px; padding: 13px 18px; font-size: 1.05rem; position: relative; z-index: 1; }
+.brief.empty { background: linear-gradient(140deg, #1e293b, #312e81); box-shadow: none; }
+
+/* Tiles */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { text-decoration: none; border-radius: 20px; padding: 14px 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  background: linear-gradient(160deg, var(--c), color-mix(in srgb, var(--c) 55%, #000)); box-shadow: 0 8px 22px color-mix(in srgb, var(--c) 35%, transparent); min-height: 104px; justify-content: center; }
+.tile .e { font-size: 2rem; line-height: 1; }
+.tile .t { font-weight: 700; font-size: 0.92rem; line-height: 1.15; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); word-break: break-word; }
+.tile:active { transform: scale(0.97); }
+
+/* Quick stats */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.stat { background: var(--elev); border: 1px solid var(--line); border-radius: 18px; padding: 12px; text-align: center; }
+.stat b { display: block; font-size: 1.7rem; font-family: var(--serif); }
+.stat span { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+
+/* Search + chips */
+.search-wrap { position: relative; margin: 6px 0 12px; }
+.search-wrap svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--muted); fill: none; }
+#search { width: 100%; border: 1px solid var(--line); background: rgba(18,22,38,0.92); border-radius: 16px; padding: 15px 14px 15px 46px; font-size: 1.08rem; outline: none; -webkit-appearance: none; }
+#search:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(34,199,169,0.2); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 6px; }
+.chip { border: 1px solid var(--line); background: var(--elev); border-radius: 999px; padding: 9px 14px; font-size: 0.95rem; font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+.chip[aria-pressed="true"] { background: var(--c, var(--teal)); color: #0b0f1c; border-color: transparent; box-shadow: 0 0 16px color-mix(in srgb, var(--c, var(--teal)) 50%, transparent); }
+
+/* Bot cards */
+.area-h { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; font-family: var(--serif); font-size: 1.35rem; font-weight: 700; }
+.area-h .bar { width: 6px; height: 26px; border-radius: 4px; background: var(--c); }
+.bots { display: grid; gap: 12px; }
+.bot { border-radius: 22px; padding: 16px; background: linear-gradient(150deg, color-mix(in srgb, var(--c) 22%, var(--elev)), var(--elev) 65%); border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); position: relative; overflow: hidden; }
+.bot .top { display: flex; gap: 14px; align-items: center; }
+.bot .av { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: color-mix(in srgb, var(--c) 30%, #0b0f1c); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); }
+.bot h3 { margin: 0; font-size: 1.2rem; font-weight: 800; line-height: 1.15; }
+.bot .role { margin: 4px 0 0; color: var(--soft); font-size: 1.02rem; }
+.bot .badge { display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: rgba(255,255,255,0.08); color: var(--muted); margin-top: 4px; }
+.jobs { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.jobs li { font-size: 0.95rem; background: rgba(0,0,0,0.22); border-radius: 12px; padding: 8px 11px; display: flex; gap: 8px; align-items: flex-start; }
+.jobs li b { color: var(--c); font-weight: 700; }
+.jobs li.paused { opacity: 0.6; }
+.jobs .pz { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: rgba(255,255,255,0.12); padding: 1px 7px; border-radius: 99px; margin-left: 4px; white-space: nowrap; }
+.open-chat { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 800; font-size: 1.05rem;
+  background: var(--c); color: #0b0f1c; border-radius: 14px; padding: 12px; }
+.note { color: var(--muted); font-size: 0.85rem; margin: 10px 2px 0; }
+.empty { text-align: center; color: var(--muted); padding: 40px 12px; font-size: 1.05rem; }
+
+/* Tasks */
+.add-task { background: var(--elev); border: 1px solid var(--line); border-radius: 22px; padding: 14px; display: grid; gap: 10px; }
+.add-task input, .add-task select, .field input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 14px; font-size: 1.08rem; outline: none; -webkit-appearance: none; }
+.add-task select { background-image: none; }
+.btn { border: 0; border-radius: 14px; padding: 14px 18px; font-weight: 800; font-size: 1.08rem; background: linear-gradient(135deg, var(--teal), var(--blue)); color: #fff; box-shadow: 0 8px 22px rgba(59,130,246,0.35); }
+.btn:disabled { opacity: 0.6; }
+.btn-ghost { border: 1px solid var(--line); background: var(--elev-2); border-radius: 14px; padding: 12px 16px; font-weight: 700; }
+.task-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.task { display: flex; gap: 12px; align-items: center; background: var(--elev); border: 1px solid var(--line); border-left: 6px solid var(--c, var(--teal)); border-radius: 18px; padding: 12px 12px 12px 12px; }
+.task .tick { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 12px; border: 2px solid var(--c, var(--teal)); background: transparent; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #0b0f1c; }
+.task.done .tick { background: var(--c, var(--teal)); }
+.task .body { flex: 1; min-width: 0; }
+.task .txt { font-size: 1.1rem; font-weight: 600; word-wrap: break-word; }
+.task.done .txt { text-decoration: line-through; color: var(--muted); }
+.task .who { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+.task .del { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 1.1rem; }
+.task .del.sure { background: #e05050; color: #fff; border-color: #e05050; width: auto; padding: 0 10px; font-size: 0.9rem; font-weight: 800; }
+.lock { text-align: center; background: linear-gradient(150deg, #1e293b, #172554); border: 1px solid var(--line); border-radius: 24px; padding: 26px 18px; }
+.lock .big { font-size: 2.6rem; }
+.lock h2 { font-family: var(--serif); margin: 6px 0 6px; }
+.lock p { color: var(--soft); margin: 0 0 14px; }
+.sync-line { color: var(--muted); font-size: 0.85rem; margin: 10px 2px 0; }
+
+/* Tab bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: space-around; background: rgba(8,11,22,0.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tabbar button { flex: 1; border: 0; background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.tabbar .ic { font-size: 1.6rem; line-height: 1.1; filter: grayscale(0.7); opacity: 0.8; }
+.tabbar button[aria-selected="true"] { color: var(--ink); }
+.tabbar button[aria-selected="true"] .ic { filter: none; opacity: 1; transform: scale(1.1); }
+
+/* Sheet */
+.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; max-width: 640px; margin: 0 auto; max-height: calc(100dvh - 40px); overflow: auto;
+  background: linear-gradient(180deg, #1a2036, #0d1120); border-radius: 26px 26px 0 0; border: 1px solid var(--line); padding: 18px 20px calc(28px + env(safe-area-inset-bottom)); }
+.sheet h2 { font-family: var(--serif); font-size: 1.8rem; margin: 0 50px 6px 0; }
+.sheet .close { position: absolute; right: 14px; top: 14px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--elev); font-size: 1.2rem; }
+.sheet p { color: var(--soft); }
+.field { margin: 12px 0; }
+.field label { display: block; font-weight: 700; margin-bottom: 6px; }
+.err { color: #fca5a5; min-height: 1.2em; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+[hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <img src="./icon-180.png" alt="">
+      <div>
+        <p class="kicker">Penguin Air &amp; Plumbing</p>
+        <h1 id="hdr">HQ</h1>
+      </div>
+      <button class="gear" id="gear" aria-label="Sign in and settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span class="dot" id="gear-dot"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="panel active" id="p-home">
+      <div id="brief"></div>
+      <div class="stats" id="stats"></div>
+      <h2 class="sec-h">Your apps</h2>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section class="panel" id="p-bots">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search bots" autocomplete="off" aria-label="Search bots">
+      </div>
+      <div class="chips" id="chips"></div>
+      <div id="bot-list"></div>
+      <p class="note" id="jobs-note"></p>
+    </section>
+
+    <section class="panel" id="p-tasks">
+      <div id="tasks"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="home"><span class="ic">🏠</span>Home</button>
+    <button role="tab" aria-selected="false" data-tab="bots"><span class="ic">🐧</span>Bots</button>
+    <button role="tab" aria-selected="false" data-tab="tasks"><span class="ic">✅</span>Tasks</button>
+  </nav>
+
+  <div class="backdrop" id="backdrop" hidden></div>
+  <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true">
+    <button class="close" id="sheet-close" aria-label="Close">✕</button>
+    <div id="sheet-body"></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  const API = "https://video-library-api.rkem1800.workers.dev";
+  // Same PIN as the Video Library. Same site, so a PIN saved there signs you in here too.
+  const LS_PIN = "videoLib.pin.v1";
+  const LS_TASKS = "hq.tasks.v1", LS_TOMBS = "hq.deleted.v1", LS_DIRTY = "hq.dirty.v1", LS_SYNCED = "hq.syncedAt.v1", LS_BRIEF = "hq.brief.v1";
+  function load(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function safeUrl(u) { return /^(https:\/\/|grokbot:\/\/)/i.test(u || "") ? u : "#"; }
+
+  let data = { areas: [], bots: [], links: [] };
+  let pin = load(LS_PIN, "") || "";
+  let tasks = load(LS_TASKS, []), tombs = load(LS_TOMBS, []);
+  let brief = load(LS_BRIEF, null);
+  let syncNote = "", pushTimer = null, area = "all", query = "", taskFilter = "open", briefState = pin ? "loading" : "locked";
+
+  function areaOf(id) { return data.areas.find(function (a) { return a.id === id; }) || { name: "", color: "#22c7a9", emoji: "" }; }
+  function botOf(id) { return data.bots.find(function (b) { return b.id === id; }); }
+
+  /* ---------- API (same flow as Video Library) ---------- */
+  function api(path, opts) {
+    opts = opts || {};
+    const headers = { "Content-Type": "application/json" };
+    const p = opts.pin !== undefined ? opts.pin : pin;
+    if (p) headers["X-PIN"] = p;
+    return fetch(API + path, { method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; }); });
+  }
+  function signOut(reason) { pin = ""; try { localStorage.removeItem(LS_PIN); } catch (e) {} syncNote = reason || ""; briefState = "locked"; renderAll(); }
+  function persist() {
+    save(LS_TASKS, tasks); save(LS_TOMBS, tombs);
+    if (!pin) return;
+    save(LS_DIRTY, true);
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushState, 600);
+  }
+  function adopt(st) {
+    tasks = Array.isArray(st.tasks) ? st.tasks : []; tombs = Array.isArray(st.deleted) ? st.deleted : [];
+    save(LS_TASKS, tasks); save(LS_TOMBS, tombs); save(LS_SYNCED, Date.now()); save(LS_DIRTY, false);
+  }
+  function pushState() {
+    pushTimer = null;
+    if (!pin) return Promise.resolve();
+    return api("/hq/state", { method: "PUT", body: { tasks: tasks, deleted: tombs } }).then(function (j) {
+      if (j.ok && j.state) { adopt(j.state); syncNote = ""; }
+      else if (j.httpStatus === 401) signOut("Your PIN stopped working. Sign in again.");
+      else syncNote = j.message || ("Sync failed (HTTP " + j.httpStatus + ").");
+      renderTasks(); renderStats();
+    }).catch(function () { syncNote = "Offline. Saved on this phone, will sync later."; renderTasks(); });
+  }
+  function pullState() {
+    if (!pin) return Promise.resolve();
+    // Server merges by task, so pushing local changes also pulls everyone else's.
+    if (load(LS_DIRTY, false)) return pushState();
+    return api("/hq/state").then(function (j) {
+      if (j.ok && j.state) { adopt(j.state); syncNote = ""; }
+      else if (j.httpStatus === 401) signOut("Your PIN stopped working. Sign in again.");
+      else if (j.message) syncNote = j.message;
+      renderTasks(); renderStats();
+    }).catch(function () { syncNote = "Offline. Showing what's saved on this phone."; renderTasks(); });
+  }
+  function pullBrief() {
+    if (!pin) { briefState = "locked"; renderBrief(); return Promise.resolve(); }
+    return api("/hq/brief").then(function (j) {
+      if (j.ok) { brief = j.brief || null; save(LS_BRIEF, brief); briefState = "ok"; }
+      else if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
+      else briefState = brief ? "ok" : "error";
+      renderBrief();
+    }).catch(function () { briefState = brief ? "ok" : "offline"; renderBrief(); });
+  }
+  function syncAll() { return Promise.all([pullState(), pullBrief()]); }
+
+  /* ---------- Home ---------- */
+  function fmtWhen(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    return d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+  function renderBrief() {
+    const el = document.getElementById("brief");
+    if (!pin) {
+      el.innerHTML = "<div class='brief empty'><div class='lbl'>☀️ Daily brief</div><h2>Sign in to see today's brief</h2><button type='button' data-signin>Enter PIN</button></div>";
+    } else if (!brief) {
+      const msg = briefState === "loading" ? "Loading…" : briefState === "offline" ? "Offline. Can't load the brief." : "No brief yet";
+      el.innerHTML = "<div class='brief empty'><div class='lbl'>☀️ Daily brief</div><h2>" + esc(msg) + "</h2>" +
+        (briefState === "ok" ? "<p class='foot'>Your bots will post a short brief here each morning.</p>" : "") + "</div>";
+    } else {
+      const items = (brief.items || []).map(function (it) {
+        const b = it.bot ? botOf(it.bot) : null;
+        return "<li><span class='e'>" + esc(it.emoji || "👉") + "</span><span style='flex:1'>" + esc(it.text) + "</span>" +
+          (b ? "<a href='" + esc(b.chat) + "'>" + esc(b.emoji) + " Open</a>" : "") + "</li>";
+      }).join("");
+      el.innerHTML = "<div class='brief'><div class='lbl'>☀️ " + esc(brief.title || "Daily brief") + (brief.date ? " · " + esc(brief.date) : "") + "</div>" +
+        (brief.headline ? "<h2>" + esc(brief.headline) + "</h2>" : "") + (items ? "<ul>" + items + "</ul>" : "") +
+        "<p class='foot'>Updated " + esc(fmtWhen(brief.updatedAt)) + (brief.from ? " by " + esc(brief.from) : "") + "</p></div>";
+    }
+    el.querySelectorAll("[data-signin]").forEach(function (b) { b.addEventListener("click", openSettings); });
+  }
+  function renderStats() {
+    const open = tasks.filter(function (t) { return !t.done; }).length;
+    const jobs = data.bots.reduce(function (n, b) { return n + (b.jobs || []).filter(function (j) { return j.status !== "paused"; }).length; }, 0);
+    document.getElementById("stats").innerHTML =
+      "<button class='stat' data-go='bots' style='color:inherit'><b>" + data.bots.length + "</b><span>Bots</span></button>" +
+      "<button class='stat' data-go='tasks' style='color:inherit'><b>" + (pin ? open : "🔒") + "</b><span>Open tasks</span></button>" +
+      "<button class='stat' data-go='bots' style='color:inherit'><b>" + jobs + "</b><span>Scheduled jobs</span></button>";
+    document.querySelectorAll("#stats [data-go]").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-go")); }); });
+  }
+  function renderTiles() {
+    document.getElementById("tiles").innerHTML = data.links.map(function (l) {
+      return "<a class='tile' style='--c:" + esc(l.color) + "' href='" + esc(safeUrl(l.url)) + "' target='_blank' rel='noopener'><span class='e'>" + esc(l.emoji) + "</span><span class='t'>" + esc(l.name) + "</span></a>";
+    }).join("");
+  }
+
+  /* ---------- Bots ---------- */
+  function renderChips() {
+    const all = [{ id: "all", name: "All", emoji: "✨", color: "#22c7a9" }].concat(data.areas);
+    document.getElementById("chips").innerHTML = all.map(function (a) {
+      return "<button class='chip' style='--c:" + esc(a.color) + "' aria-pressed='" + (area === a.id) + "' data-area='" + esc(a.id) + "'>" + esc(a.emoji) + " " + esc(a.name) + "</button>";
+    }).join("");
+    document.querySelectorAll("#chips [data-area]").forEach(function (b) {
+      b.addEventListener("click", function () { area = b.getAttribute("data-area"); renderChips(); renderBots(); });
+    });
+  }
+  function botCard(b) {
+    const a = areaOf(b.area);
+    const jobs = (b.jobs || []).map(function (j) {
+      return "<li class='" + (j.status === "paused" ? "paused" : "") + "'>⏰<span><b>" + esc(j.when) + ":</b> " + esc(j.what) + (j.status === "paused" ? "<span class='pz'>Paused</span>" : "") + "</span></li>";
+    }).join("");
+    return "<article class='bot' style='--c:" + esc(a.color) + "'><div class='top'><div class='av'>" + esc(b.emoji) + "</div><div><h3>" + esc(b.name) + "</h3>" +
+      "<p class='role'>" + esc(b.role) + "</p>" + (b.kind === "personal" ? "<span class='badge'>Personal</span>" : "") + "</div></div>" +
+      (jobs ? "<ul class='jobs'>" + jobs + "</ul>" : "") +
+      "<a class='open-chat' href='" + esc(safeUrl(b.chat)) + "'>💬 Open chat</a></article>";
+  }
+  function renderBots() {
+    const q = query.trim().toLowerCase();
+    const list = data.bots.filter(function (b) {
+      if (area !== "all" && b.area !== area) return false;
+      if (!q) return true;
+      const a = areaOf(b.area);
+      return (b.name + " " + b.role + " " + a.name + " " + (b.jobs || []).map(function (j) { return j.what + " " + j.when; }).join(" ")).toLowerCase().indexOf(q) !== -1;
+    });
+    const out = data.areas.map(function (a) {
+      const bs = list.filter(function (b) { return b.area === a.id; });
+      if (!bs.length) return "";
+      return "<div class='area-h' style='--c:" + esc(a.color) + "'><span class='bar'></span>" + esc(a.emoji) + " " + esc(a.name) + "</div><div class='bots'>" + bs.map(botCard).join("") + "</div>";
+    }).join("");
+    document.getElementById("bot-list").innerHTML = out || "<p class='empty'>No bots match. Try another word.</p>";
+  }
+
+  /* ---------- Tasks ---------- */
+  function uid() { return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function botOptions() {
+    return "<option value=''>🐧 Any bot / me</option>" + data.areas.map(function (a) {
+      return "<optgroup label='" + esc(a.name) + "'>" + data.bots.filter(function (b) { return b.area === a.id; }).map(function (b) {
+        return "<option value='" + esc(b.id) + "'>" + esc(b.emoji + " " + b.name) + "</option>";
+      }).join("") + "</optgroup>";
+    }).join("");
+  }
+  function renderTasks() {
+    const el = document.getElementById("tasks");
+    if (!pin) {
+      el.innerHTML = "<div class='lock'><div class='big'>🔒</div><h2>Your task list</h2><p>One list for all your bots. Sign in with the same PIN as your Video Library.</p><button class='btn' data-signin>Enter PIN</button></div>";
+      el.querySelector("[data-signin]").addEventListener("click", openSettings);
+      return;
+    }
+    const sel = document.getElementById("task-bot"); const keepBot = sel ? sel.value : "";
+    const inp = document.getElementById("task-in"); const keepText = inp ? inp.value : "";
+    const open = tasks.filter(function (t) { return !t.done; }), done = tasks.filter(function (t) { return t.done; });
+    let shown = taskFilter === "open" ? open : taskFilter === "done" ? done : tasks.slice();
+    shown.sort(function (x, y) { return (x.done - y.done) || ((y.done ? y.doneAt : y.createdAt) - (x.done ? x.doneAt : x.createdAt)); });
+    el.innerHTML = "<form class='add-task' id='task-form'><input id='task-in' maxlength='300' placeholder='Add a task…' autocomplete='off' aria-label='New task'>" +
+      "<select id='task-bot' aria-label='Which bot'>" + botOptions() + "</select><button class='btn' type='submit'>➕ Add task</button></form>" +
+      "<div class='chips' style='margin-top:14px'>" + [["open", "To do", open.length], ["done", "Done", done.length], ["all", "All", tasks.length]].map(function (f) {
+        return "<button class='chip' aria-pressed='" + (taskFilter === f[0]) + "' data-tf='" + f[0] + "'>" + f[1] + " · " + f[2] + "</button>";
+      }).join("") + "</div>" +
+      (shown.length ? "<ul class='task-list'>" + shown.map(function (t) {
+        const b = t.bot ? botOf(t.bot) : null; const a = b ? areaOf(b.area) : null;
+        return "<li class='task" + (t.done ? " done" : "") + "' style='--c:" + esc(a ? a.color : "#22c7a9") + "'>" +
+          "<button class='tick' data-tick='" + esc(t.id) + "' aria-label='" + (t.done ? "Mark not done" : "Mark done") + "'>" + (t.done ? "✓" : "") + "</button>" +
+          "<div class='body'><div class='txt'>" + esc(t.text) + "</div><div class='who'>" + (b ? esc(b.emoji + " " + b.name) : "🐧 Any bot / me") + "</div></div>" +
+          "<button class='del' data-del='" + esc(t.id) + "' aria-label='Delete'>🗑</button></li>";
+      }).join("") + "</ul>" : "<p class='empty'>" + (taskFilter === "done" ? "Nothing done yet." : "All clear! 🎉") + "</p>") +
+      "<p class='sync-line'>" + esc(syncNote || ("Synced " + (fmtWhen(load(LS_SYNCED, 0)) || "—"))) + "</p>";
+    document.getElementById("task-bot").value = keepBot; document.getElementById("task-in").value = keepText;
+    document.getElementById("task-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const txt = document.getElementById("task-in").value.trim(); if (!txt) return;
+      const now = Date.now();
+      tasks.push({ id: uid(), text: txt.slice(0, 300), bot: document.getElementById("task-bot").value, done: false, createdAt: now, updatedAt: now, doneAt: 0 });
+      document.getElementById("task-in").value = "";
+      if (taskFilter === "done") taskFilter = "open";
+      persist(); renderTasks(); renderStats();
+    });
+    el.querySelectorAll("[data-tf]").forEach(function (b) { b.addEventListener("click", function () { taskFilter = b.getAttribute("data-tf"); renderTasks(); }); });
+    el.querySelectorAll("[data-tick]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const t = tasks.find(function (x) { return x.id === b.getAttribute("data-tick"); }); if (!t) return;
+        t.done = !t.done; t.doneAt = t.done ? Date.now() : 0; t.updatedAt = Date.now();
+        persist(); renderTasks(); renderStats();
+      });
+    });
+    el.querySelectorAll("[data-del]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (!b.classList.contains("sure")) { b.classList.add("sure"); b.textContent = "Delete?"; setTimeout(function () { if (b.isConnected) { b.classList.remove("sure"); b.textContent = "🗑"; } }, 3000); return; }
+        const id = b.getAttribute("data-del");
+        tasks = tasks.filter(function (x) { return x.id !== id; }); if (tombs.indexOf(id) === -1) tombs.push(id);
+        persist(); renderTasks(); renderStats();
+      });
+    });
+  }
+
+  /* ---------- Settings / sign in ---------- */
+  function openSettings() {
+    const body = document.getElementById("sheet-body");
+    if (pin) {
+      body.innerHTML = "<h2>Signed in ✅</h2><p>Your tasks and daily brief sync across your devices.</p><p>Last synced: " + esc(fmtWhen(load(LS_SYNCED, 0)) || "never") + "</p>" +
+        "<div class='btn-row'><button class='btn' id='sync-now'>🔄 Sync now</button><button class='btn-ghost' id='sign-out'>Sign out</button></div>" +
+        "<p class='err' id='acct-err'>" + esc(syncNote) + "</p><p style='font-size:0.9rem;color:var(--muted)'>Same PIN as your Video Library. To change it, use Video Library → gear → Change PIN.</p>";
+    } else {
+      body.innerHTML = "<h2>Sign in with PIN</h2><p>Use the same PIN as your Video Library. Bots and apps show without it. Tasks and the daily brief need it.</p>" +
+        "<div class='field'><label for='pin-in'>PIN</label><input id='pin-in' type='password' inputmode='numeric' autocomplete='current-password' placeholder='Your PIN'></div>" +
+        "<div class='btn-row'><button class='btn' id='pin-go'>Sign in</button></div><p class='err' id='acct-err'>" + esc(syncNote) + "</p>";
+    }
+    document.getElementById("backdrop").hidden = false; document.getElementById("sheet").hidden = false;
+    const errEl = function (t) { const e = document.getElementById("acct-err"); if (e) e.textContent = t; };
+    const go = document.getElementById("pin-go");
+    if (go) {
+      const inp = document.getElementById("pin-in");
+      const doIt = function () {
+        const p = inp.value.trim(); if (!p) { errEl("Type your PIN."); return; }
+        go.disabled = true; go.textContent = "Checking…";
+        api("/hq/state", { pin: p }).then(function (j) {
+          go.disabled = false; go.textContent = "Sign in";
+          if (j.ok) {
+            pin = p; save(LS_PIN, p); syncNote = "";
+            // Keep anything added on this device before signing in.
+            const server = (j.state && j.state.tasks) || [];
+            const extra = tasks.filter(function (t) { return !server.some(function (s) { return s.id === t.id; }); });
+            adopt(j.state || {});
+            if (extra.length) { tasks = tasks.concat(extra); persist(); }
+            briefState = "loading"; closeSheet(); renderAll(); pullBrief(); return;
+          }
+          if (j.error === "not_setup") { errEl("No PIN set up yet. Set one up in your Video Library app first."); return; }
+          errEl((j.message || "Couldn't sign in.") + (j.triesLeft !== undefined ? " " + j.triesLeft + " tries left." : ""));
+        }).catch(function () { go.disabled = false; go.textContent = "Sign in"; errEl("Can't reach the server. Check your connection."); });
+      };
+      go.addEventListener("click", doIt);
+      inp.addEventListener("keydown", function (e) { if (e.key === "Enter") doIt(); });
+      setTimeout(function () { inp.focus(); }, 50);
+    }
+    const sn = document.getElementById("sync-now");
+    if (sn) sn.addEventListener("click", function () { sn.disabled = true; sn.textContent = "Syncing…"; syncAll().then(function () { openSettings(); }); });
+    const so = document.getElementById("sign-out");
+    if (so) so.addEventListener("click", function () { signOut(""); closeSheet(); });
+  }
+  function closeSheet() { document.getElementById("backdrop").hidden = true; document.getElementById("sheet").hidden = true; }
+
+  /* ---------- Tabs ---------- */
+  function showTab(name) {
+    document.querySelectorAll(".tabbar button").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
+    document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
+    document.getElementById("hdr").textContent = name === "bots" ? "Your bots" : name === "tasks" ? "Tasks" : "HQ";
+    window.scrollTo(0, 0);
+    try { history.replaceState(null, "", "#" + name); } catch (e) {}
+  }
+  function renderAll() {
+    document.getElementById("gear-dot").classList.toggle("on", !!pin);
+    renderBrief(); renderStats(); renderTasks();
+  }
+
+  document.querySelectorAll(".tabbar button").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-tab")); }); });
+  document.getElementById("gear").addEventListener("click", openSettings);
+  document.getElementById("sheet-close").addEventListener("click", closeSheet);
+  document.getElementById("backdrop").addEventListener("click", closeSheet);
+  document.getElementById("search").addEventListener("input", function (e) { query = e.target.value; renderBots(); });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) syncAll(); });
+
+  fetch("./hq.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
+    data = d;
+    document.getElementById("jobs-note").textContent = "⏰ " + (d.jobsNote || "");
+    renderTiles(); renderChips(); renderBots(); renderAll();
+    const h = (location.hash || "").slice(1); if (["home", "bots", "tasks"].indexOf(h) !== -1) showTab(h);
+    if (pin) syncAll();
+  }).catch(function () { document.getElementById("bot-list").innerHTML = "<p class='empty'>Couldn't load. Pull down to refresh.</p>"; });
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function () {});
+})();
+</script>
+</body>
+</html>
