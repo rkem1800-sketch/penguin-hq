@@ -244,6 +244,17 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .yn { border: 2px solid var(--elev-2); background: rgba(255,255,255,0.06); color: var(--ink); border-radius: 14px; padding: 10px 12px; font-size: 1rem; font-weight: 800; min-height: 48px; }
 .yn-yes { border-color: #4ade80; background: rgba(74,222,128,0.16); }
 .yn-no { border-color: #f87171; background: rgba(248,113,113,0.14); }
+.fu-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
+.fu-act { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 54px; border-radius: 16px; border: 2px solid var(--elev-2); background: rgba(255,255,255,0.07); color: var(--ink); font-size: 1.05rem; font-weight: 800; text-decoration: none; padding: 8px 10px; text-align: center; }
+.fu-act.call { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: transparent; color: #fff; }
+.fu-act.text { background: linear-gradient(135deg, #0ea5e9, #2563eb); border-color: transparent; color: #fff; }
+.fu-act.bot { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.14); }
+.fu-act.wide { grid-column: 1 / -1; }
+.fu-req { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(167,139,250,0.14); border: 1px solid rgba(167,139,250,0.45); font-size: 0.98rem; line-height: 1.4; }
+.fu-req.needs_rk { background: rgba(244,114,182,0.16); border-color: rgba(244,114,182,0.6); }
+.fu-req.done { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.5); }
+.fu-req.failed { background: rgba(248,113,113,0.14); border-color: rgba(248,113,113,0.55); }
+.fu-req .res { margin-top: 6px; white-space: pre-wrap; }
 .fu-done-lbl { margin: 6px 0 0 68px; font-size: 0.8rem; color: var(--muted); }
 @media (min-width: 900px) {
   .main { max-width: 1100px; }
@@ -749,14 +760,60 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
         persist(C.followups);
       });
     });
+    el.querySelectorAll("[data-fu-req]").forEach(function (b) { b.addEventListener("click", function () { const p = b.getAttribute("data-fu-req").split("|"); reqSheet(p[0], p[1]); }); });
+    el.querySelectorAll("[data-fu-note]").forEach(function (b) { b.addEventListener("click", function () { noteSheet(b.getAttribute("data-fu-note")); }); });
     const rn = $("fu-run"); if (rn) rn.addEventListener("click", runSweep);
     if (wsOpen === "followups" && !sweep.loadedAt) loadSweep();
   }
   /* ---------- Follow-ups ---------- */
   let sweep = { connected: null, lastRunRequested: null, lastSweepFinished: null, msg: "", busy: false, loadedAt: 0 };
+  /* Requests to the Front Desk bot: latest one per row */
+  const REQ_KINDS = { reply: ["✍️", "Draft a reply", "Anything to add? e.g. offer Thu AM, mention the warranty"], schedule: ["📅", "Schedule", "Any time to offer? e.g. Thu AM, after 3"], check: ["🔎", "Check their file", "What should it look for? e.g. did we quote a heat pump?"], ask: ["💬", "Ask bot…", "Type your question or what you want done"] };
+  const REQ_STATUS = { queued: "⏳ Sent to Front Desk", working: "⚙️ Front Desk is on it", needs_rk: "🙋 Needs you", done: "✅ Done", failed: "⚠️ Didn't work" };
+  let fuReqs = {}, reqTimer = null;
+  function loadReqs() {
+    if (!pin) return Promise.resolve();
+    return api("/hq/followups/requests", { base: FU_API }).then(function (j) {
+      if (!j.ok) return;
+      const m = {}; (j.requests || []).forEach(function (q) { if (!m[q.rowId] || q.createdAt > m[q.rowId].createdAt) m[q.rowId] = q; });
+      fuReqs = m;
+      if (wsOpen === "followups") renderWork();
+      if (reqTimer) clearTimeout(reqTimer);
+      const pending = Object.keys(m).some(function (k) { return m[k].status === "queued" || m[k].status === "working"; });
+      if (pending && wsOpen === "followups") reqTimer = setTimeout(loadReqs, 20000);
+    }).catch(function () {});
+  }
+  function reqSheet(id, kind) {
+    const r = C.followups.items.find(function (x) { return x.id === id; }); if (!r) return; const k = REQ_KINDS[kind];
+    openSheet("<h2>" + k[0] + " " + esc(k[1].replace("…", "")) + "</h2><p class='sweep-times' style='margin-top:0'>For <b>" + esc(WS.followups.title(r)) + "</b>. The Front Desk bot gets this and answers on this card.</p>" +
+      "<div class='form-grid'><div><label for='rq-note'>" + (kind === "ask" ? "Your question" : "Note for the bot (optional)") + "</label><textarea id='rq-note' maxlength='1000' placeholder='" + esc(k[2]) + "'></textarea></div>" +
+      "<div class='btn-row'><button class='btn' id='rq-send'>Send to Front Desk</button></div><p class='err' id='rq-err'></p></div>");
+    $("rq-send").addEventListener("click", function () {
+      const note = $("rq-note").value.trim();
+      if (kind === "ask" && !note) { $("rq-err").textContent = "Type your question first."; return; }
+      const b = $("rq-send"); b.disabled = true; b.textContent = "Sending…";
+      api("/hq/followups/request", { method: "POST", base: FU_API, body: { rowId: id, kind: kind, note: note } }).then(function (j) {
+        if (j.httpStatus === 401) { closeSheet(); signOut("Your PIN stopped working. Sign in again."); return; }
+        if (j.request) { fuReqs[id] = j.request; closeSheet(); renderWork(); pullActivity(); loadReqs(); if (!j.ok) { sweep.msg = j.message; renderWork(); } return; }
+        b.disabled = false; b.textContent = "Send to Front Desk"; $("rq-err").textContent = j.message || ("Couldn't send (HTTP " + j.httpStatus + ").");
+      }).catch(function () { b.disabled = false; b.textContent = "Send to Front Desk"; $("rq-err").textContent = "Can't reach the server. Check your connection."; });
+    });
+  }
+  function noteSheet(id) {
+    const r = C.followups.items.find(function (x) { return x.id === id; }); if (!r) return;
+    openSheet("<h2>📝 Add note</h2><p class='sweep-times' style='margin-top:0'>Saved on <b>" + esc(WS.followups.title(r)) + "</b>'s card. Not sent to the bot.</p>" +
+      "<div class='form-grid'><div><label for='nt-text'>Note</label><textarea id='nt-text' maxlength='500'></textarea></div><div class='btn-row'><button class='btn' id='nt-save'>Save note</button></div><p class='err' id='nt-err'></p></div>");
+    $("nt-save").addEventListener("click", function () {
+      const t = $("nt-text").value.trim(); if (!t) { $("nt-err").textContent = "Type a note first."; return; }
+      const stamp = new Date().toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      r.note = ((r.note ? r.note + "\n" : "") + stamp + ": " + t).slice(-2000); r.updatedAt = Date.now();
+      closeSheet(); persist(C.followups);
+    });
+  }
   function loadSweep() {
     if (!pin) return Promise.resolve();
     sweep.loadedAt = Date.now();
+    loadReqs();
     return api("/hq/followups/status", { base: FU_API }).then(function (j) {
       if (j.ok) { sweep.connected = j.connected; sweep.lastRunRequested = j.lastRunRequested; sweep.lastSweepFinished = j.lastSweepFinished; }
       if (wsOpen === "followups") renderWork();
@@ -785,7 +842,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   }
   function fuCard(r, col) {
     const done = r.status === "Handled", urg = fuUrgent(r);
-    const links = [r.phone && "<a class='pill soft' href='tel:" + esc(r.phone.replace(/[^\d+]/g, "")) + "'>📱 " + esc(r.phone) + "</a>", r.email && "<a class='pill soft' href='mailto:" + esc(r.email) + "'>✉️ " + esc(r.email) + "</a>"].filter(Boolean).join("");
+    const links = [r.phone && "<span class='pill soft'>📱 " + esc(r.phone) + "</span>", r.email && "<a class='pill soft' href='mailto:" + esc(r.email) + "'>✉️ " + esc(r.email) + "</a>"].filter(Boolean).join("");
     return "<div class='kcard fu" + (done ? " is-done" : "") + "' style='--c:" + (urg && !done ? "#ef4444" : col) + "'><div class='fu-row'>" +
       "<button class='fu-check' data-fu-done='" + esc(r.id) + "' aria-pressed='" + done + "' aria-label='" + (done ? "Mark not done" : "Mark done") + "'>" + (done ? "✓" : "") + "</button>" +
       "<button class='main-tap' data-edit-row='followups:" + esc(r.id) + "'><div class='meta' style='margin-top:0'>" + (urg && !done ? "<span class='pill' style='--pc:#ef4444;color:#fff'>🔥 Urgent</span>" : "") +
@@ -794,7 +851,20 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       "<div class='row-sub'>" + WS.followups.sub(r) + "</div>" + (r.note ? "<div class='notes'>" + esc(r.note) + "</div>" : "") +
       (r.lastSeen ? "<div class='notes'>Last seen by sweep: " + esc(fmtDate(r.lastSeen)) + "</div>" : "") + "</button></div>" +
       "<div class='yn-row'>" + YN.map(function (y) { const v = r[y[0]] || ""; return "<button class='yn yn-" + (v || "blank") + "' data-yn='" + esc(r.id) + ":" + y[0] + "' aria-label='" + y[1] + " " + (v || "not checked") + "'>" + y[1] + " " + ynIcon(v) + "</button>"; }).join("") + "</div>" +
-      (links ? "<div class='meta fu-links'>" + links + "</div>" : "") + "<div class='fu-done-lbl'>" + (done ? "Done ✓" : "Tap the box when it's handled") + "</div></div>";
+      (links ? "<div class='meta fu-links'>" + links + "</div>" : "") + fuReqHtml(r) + fuActs(r) + "<div class='fu-done-lbl'>" + (done ? "Done ✓" : "Tap the box when it's handled") + "</div></div>";
+  }
+  function fuReqHtml(r) {
+    const q = fuReqs[r.id]; if (!q) return "";
+    const k = REQ_KINDS[q.kind] || ["📨", q.kind];
+    return "<div class='fu-req " + esc(q.status) + "'><b>" + k[0] + " " + esc(k[1].replace("…", "")) + ":</b> " + esc(REQ_STATUS[q.status] || q.status) +
+      " <span style='color:var(--muted)'>· " + esc(fmtWhen(q.updatedAt || q.createdAt)) + "</span>" + (q.note ? "<div style='color:var(--soft)'>You: " + esc(q.note) + "</div>" : "") +
+      (q.result ? "<div class='res'>" + esc(q.result) + "</div>" : "") + "</div>";
+  }
+  function fuActs(r) {
+    const tel = (r.phone || "").replace(/[^\d+]/g, "");
+    return "<div class='fu-acts'>" + (tel ? "<a class='fu-act call' href='tel:" + esc(tel) + "'>📞 Call</a><a class='fu-act text' href='sms:" + esc(tel) + "'>💬 Text</a>" : "") +
+      Object.keys(REQ_KINDS).map(function (k) { return "<button class='fu-act bot' data-fu-req='" + esc(r.id) + "|" + k + "'>" + REQ_KINDS[k][0] + " " + esc(REQ_KINDS[k][1]) + "</button>"; }).join("") +
+      "<button class='fu-act wide' data-fu-note='" + esc(r.id) + "'>📝 Add note</button></div>";
   }
   function editRow(w, id) {
     const cfg = WS[w], c = C[w];
@@ -939,7 +1009,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   $("sheet-close").addEventListener("click", closeSheet);
   $("backdrop").addEventListener("click", closeSheet);
   $("search").addEventListener("input", function (e) { query = e.target.value; renderBots(); });
-  document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) syncAll(); });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) { syncAll(); if (wsOpen === "followups") loadReqs(); } });
   let wasWide = window.innerWidth >= 900;
   window.addEventListener("resize", function () { const w = window.innerWidth >= 900; if (w !== wasWide) { wasWide = w; renderBoard(); } });
 

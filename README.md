@@ -131,7 +131,33 @@ curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/status 
   -d '{"by":"Front Desk","finishedAt":"2026-11-16T12:05:00Z","summary":"Checked 9 channels, 2 new, 1 urgent"}'
 ```
 
-**Run update wiring:** Worker secrets on **penguin-hq-api**: `FRONTDESK_SWEEP_WEBHOOK_URL` (Front Desk "Follow-up sweep (Run now)" routine webhook) and `FRONTDESK_SWEEP_WEBHOOK_KEY` (sent as `Authorization: Bearer <key>`). Other secrets: `PIN_SALT`, `PIN_HASH` (copied from the Video Library config, so the same PIN works), `HQ_WRITE_TOKEN_HASH`. Never put values in this repo. Deploys use `keep_bindings: ["secret_text"]`, so secrets survive redeploys. Deploy helper: `/workspace/penguin-hq-api/build.mjs` on the Grok Bot box (Cloudflare MCP).
+### Follow-ups action buttons and Front Desk requests (penguin-hq-api)
+
+Each Follow-ups card has big buttons: **📞 Call** (`tel:`) and **💬 Text** (`sms:`) are plain links on RK's phone and send nothing to any bot. **✍️ Draft a reply**, **📅 Schedule**, **🔎 Check their file** and **💬 Ask bot…** open a small box for an optional note (required for Ask) and send a request to the Front Desk bot. **📝 Add note** appends a time-stamped line to the row's `note` and saves it with the normal PIN `PUT /hq/ws/followups`; it never goes to the bot. The card shows the row's latest request: status, RK's note and the bot's `result` text. While a request is queued or working, the app re-checks every 20 seconds.
+
+| Endpoint | Auth | Body / query | Response |
+|---|---|---|---|
+| `POST /hq/followups/request` | `X-PIN` | `{"rowId":"fu-…","kind":"reply\|schedule\|check\|ask","note":"optional (required for ask), max 1000"}` | `200 {ok:true, webhookStatus, request}`; `502 {ok:false, error:"webhook_failed", webhookStatus, request, message}` (saved, still queued); `400 bad_kind / note_required`; `404 no_row`; `429 too_many` (20 per rolling hour, `retryAfter` s); `503 not_configured` |
+| `GET /hq/followups/requests?status=queued` | `Authorization: Bearer $PENGUIN_HQ_FRONTDESK_READ_TOKEN` (Front Desk) or `X-PIN` (app) | `status` = comma list of `queued,working,needs_rk,done,failed` or `all` (default); optional `id=rq-…` | `{ok:true, requests:[{id, rowId, kind, kindLabel, note, status, result, createdAt, updatedAt, row:{…full follow-up row…} or null}]}` |
+| `POST /hq/followups/requests` | write token | `{"id":"rq-…","status":"working\|needs_rk\|done\|failed","result":"text for the card, max 2000","by":"Front Desk"}` or `{"deleted":["rq-…"]}` | `{ok:true, request}` / `{ok:true, removed}`; `400 bad_status`; `404 no_request` |
+
+Request object: `{"id":"rq-…","rowId":"fu-…","kind":"check","note":"did we quote a heat pump?","status":"queued","result":"","createdAt":ms,"updatedAt":ms}`. Stored in KV `hq:fu:requests` (newest 300). Deleting a row deletes its requests.
+
+**Lifecycle:** RK taps a button → `POST /hq/followups/request` stores it as `queued` and adds an activity event → the Worker POSTs `{"source":"penguin-hq","action":"request","requestId":"rq-…"}` (ids only, never customer data) to the Front Desk routine webhook → the bot `GET`s `/hq/followups/requests?id=rq-…` (or `?status=queued`) with the read token, gets the row joined in → posts `working` → does the work (never contacts the customer without RK's yes) → posts `needs_rk` (e.g. "Draft ready, approve in Front Desk chat"), `done` (e.g. a file-check answer) or `failed`, with `result`. Statuses other than `working` add an activity event. If the webhook call fails, the request stays `queued` and the bot should pick it up on its next sweep (`?status=queued`).
+
+Run update (`/hq/followups/run`) and requests use the same webhook helper and secrets; payload `action` tells them apart (`sweep` or `request`).
+
+```bash
+set -a; . ~/.penguin-hq.env; set +a
+curl -s "https://penguin-hq-api.rkem1800.workers.dev/hq/followups/requests?status=queued" -H "Authorization: Bearer $PENGUIN_HQ_FRONTDESK_READ_TOKEN"
+curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/requests \
+  -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"by":"Front Desk","id":"rq-abc","status":"needs_rk","result":"Draft ready, approve in Front Desk chat"}'
+```
+
+`PENGUIN_HQ_FRONTDESK_READ_TOKEN` lives only in `~/.penguin-hq.env`; the Worker stores its SHA-256 as `HQ_FRONTDESK_READ_TOKEN_HASH`.
+
+**Run update wiring:** Worker secrets on **penguin-hq-api**: `FRONTDESK_SWEEP_WEBHOOK_URL` (Front Desk "Follow-up sweep (Run now)" routine webhook) and `FRONTDESK_SWEEP_WEBHOOK_KEY` (sent as `Authorization: Bearer <key>`). Other secrets: `HQ_FRONTDESK_READ_TOKEN_HASH`, `PIN_SALT`, `PIN_HASH` (copied from the Video Library config, so the same PIN works), `HQ_WRITE_TOKEN_HASH`. Never put values in this repo. Deploys use `keep_bindings: ["secret_text"]`, so secrets survive redeploys. Deploy helper: `/workspace/penguin-hq-api/build.mjs` on the Grok Bot box (Cloudflare MCP).
 
 ### Daily brief
 

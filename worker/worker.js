@@ -3,12 +3,16 @@
 // Secrets (Worker secrets only, never in this repo):
 //   PIN_SALT, PIN_HASH          same PIN as the Video Library: PIN_HASH = SHA-256 hex of PIN_SALT + ":" + PIN
 //   HQ_WRITE_TOKEN_HASH         SHA-256 hex of PENGUIN_HQ_WRITE_TOKEN (bot writes)
+//   HQ_FRONTDESK_READ_TOKEN_HASH  SHA-256 hex of PENGUIN_HQ_FRONTDESK_READ_TOKEN (Front Desk reads its request queue)
 //   FRONTDESK_SWEEP_WEBHOOK_URL, FRONTDESK_SWEEP_WEBHOOK_KEY   Front Desk "Follow-up sweep (Run now)" routine webhook
 const ORIGIN = "https://rkem1800-sketch.github.io";
 const MAX_FAILS = 10, GLOBAL_MAX_FAILS = 50, LOCK_SECONDS = 900;
 const RUN_EVERY_MS = 5 * 60000;
 const MAX_ROWS = 2000, MAX_TOMBS = 2000, MAX_EVENTS = 200;
-const KEY_ROWS = "hq:ws:followups", KEY_SWEEP = "hq:fu:sweep", KEY_ACT = "hq:activity";
+const KEY_ROWS = "hq:ws:followups", KEY_SWEEP = "hq:fu:sweep", KEY_ACT = "hq:activity", KEY_REQ = "hq:fu:requests";
+const REQ_PER_HOUR = 20, MAX_REQS = 300;
+const REQ_KINDS = { reply: "Draft a reply", schedule: "Schedule", check: "Check their file", ask: "Ask bot" };
+const REQ_STATUSES = ["queued", "working", "needs_rk", "done", "failed"];
 
 function cors(req) {
   const h = { "Vary": "Origin" };
@@ -63,10 +67,11 @@ async function checkPin(req, env) {
   if (ls.mine.n) await env.KV.delete("fails:" + ip);
   return null;
 }
-async function tokenOk(req, env) {
+async function tokenOk(req, env, secretName) {
+  const want = env[secretName || "HQ_WRITE_TOKEN_HASH"];
   const tok = (req.headers.get("Authorization") || "").replace(/^bearer\s+/i, "").trim();
-  if (!tok || tok.length > 200 || !env.HQ_WRITE_TOKEN_HASH) return false;
-  return safeEq(await sha256Hex(tok), String(env.HQ_WRITE_TOKEN_HASH).toLowerCase());
+  if (!tok || tok.length > 200 || !want) return false;
+  return safeEq(await sha256Hex(tok), String(want).toLowerCase());
 }
 
 // ---------- Follow-ups rows ----------
@@ -142,6 +147,7 @@ async function writeRows(env, body, mode, by) {
   }
   const st = { rows: [...byId.values()].filter((x) => !tombs.has(x.id)).slice(-MAX_ROWS), deleted: [...tombs].slice(-MAX_TOMBS), updatedAt: Date.now() };
   await env.KV.put(KEY_ROWS, JSON.stringify(st));
+  if (removed) { const rq = await readReqs(env); const left = rq.filter((q) => !tombs.has(q.rowId)); if (left.length !== rq.length) await writeReqs(env, left); }
   if (mode === "patch") {
     const custom = str(body.activity, 300);
     if (custom) evs.push(ev(by, custom, "bot"));
@@ -153,6 +159,35 @@ async function writeRows(env, body, mode, by) {
 
 function webhookKey(env) { return String(env.FRONTDESK_SWEEP_WEBHOOK_KEY || "").trim().replace(/^authorization:\s*/i, "").replace(/^bearer\s+/i, ""); }
 function connected(env) { return !!(String(env.FRONTDESK_SWEEP_WEBHOOK_URL || "").trim() && webhookKey(env)); }
+// One helper for every call to the Front Desk routine webhook. Payloads carry ids only, never customer data.
+async function callFrontDesk(env, payload) {
+  try {
+    const resp = await fetch(String(env.FRONTDESK_SWEEP_WEBHOOK_URL).trim(), { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + webhookKey(env) }, body: JSON.stringify(Object.assign({ source: "penguin-hq" }, payload)) });
+    return { ok: resp.ok, status: resp.status };
+  } catch (e) { return { ok: false, status: 0 }; }
+}
+
+// ---------- Requests RK sends to the Front Desk bot ----------
+async function readReqs(env) { const raw = (await env.KV.get(KEY_REQ, "json")) || {}; return Array.isArray(raw.requests) ? raw.requests : []; }
+async function writeReqs(env, list) { await env.KV.put(KEY_REQ, JSON.stringify({ requests: list.slice(-MAX_REQS), updatedAt: Date.now() })); }
+async function createRequest(req, env, body, by) {
+  if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "The Front Desk bot isn't connected yet." });
+  const rowId = str(body && body.rowId, 64), kind = str(body && body.kind, 20), note = str(body && body.note, 1000);
+  if (!REQ_KINDS[kind]) return json(req, 400, { ok: false, error: "bad_kind", message: "kind must be reply, schedule, check or ask." });
+  if (kind === "ask" && !note) return json(req, 400, { ok: false, error: "note_required", message: "Type your question for the bot." });
+  const row = (await readRows(env)).rows.find((r) => r.id === rowId);
+  if (!row) return json(req, 404, { ok: false, error: "no_row", message: "That follow-up isn't on the list anymore." });
+  const list = await readReqs(env), now = Date.now();
+  const lastHour = list.filter((q) => q.createdAt > now - 3600000);
+  if (lastHour.length >= REQ_PER_HOUR) { const wait = Math.ceil((Math.min(...lastHour.map((q) => q.createdAt)) + 3600000 - now) / 1000);
+    return json(req, 429, { ok: false, error: "too_many", message: "That's 20 requests this hour. Try again in " + Math.ceil(wait / 60) + " minutes.", retryAfter: wait }); }
+  const q = { id: "rq-" + now.toString(36) + randHex(4), rowId, kind, note, status: "queued", result: "", createdAt: now, updatedAt: now };
+  list.push(q); await writeReqs(env, list);
+  await addEvents(env, [ev(by, "Asked Front Desk: " + REQ_KINDS[kind] + " for " + title(row), "bot")]);
+  const w = await callFrontDesk(env, { action: "request", requestId: q.id });
+  if (!w.ok) return json(req, 502, { ok: false, error: "webhook_failed", webhookStatus: w.status, request: q, message: "Saved, but the Front Desk bot didn't answer. It will see this on its next check." });
+  return json(req, 200, { ok: true, webhookStatus: w.status, request: q });
+}
 
 async function runSweep(req, env, by) {
   if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "Run update isn't connected yet.", connected: false });
@@ -164,13 +199,10 @@ async function runSweep(req, env, by) {
   const requestedAt = new Date().toISOString();
   meta.lastRunRequested = requestedAt;
   await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
-  let resp;
-  try {
-    resp = await fetch(String(env.FRONTDESK_SWEEP_WEBHOOK_URL).trim(), { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + webhookKey(env) }, body: JSON.stringify({ source: "penguin-hq", action: "sweep", requestedAt }) });
-  } catch (e) { resp = null; }
-  if (!resp || !resp.ok) { // failed: don't hold RK to the 5-minute wait
+  const resp = await callFrontDesk(env, { action: "sweep", requestedAt });
+  if (!resp.ok) { // failed: don't hold RK to the 5-minute wait
     meta.lastRunRequested = prev; await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
-    if (!resp) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev });
+    if (!resp.status) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev });
     return json(req, 502, { ok: false, webhookStatus: resp.status, lastRunRequested: prev, message: "The Front Desk bot didn't accept the request (HTTP " + resp.status + ")." });
   }
   await addEvents(env, [ev(by, "Started a follow-up sweep", "bot")]);
@@ -235,6 +267,38 @@ export default {
       return runSweep(req, env, "RK");
     }
 
+    // RK (PIN) sends a request about one row to the Front Desk bot.
+    if (path === "/hq/followups/request") {
+      if (req.method !== "POST") return json(req, 405, { ok: false, error: "method" });
+      const bad = await checkPin(req, env); if (bad) return bad;
+      return createRequest(req, env, await readJson(req) || {}, "RK");
+    }
+    // GET: Front Desk (read token, with row data) or the app (PIN). POST: Front Desk posts status/result (write token).
+    if (path === "/hq/followups/requests") {
+      if (req.method === "GET") {
+        if (req.headers.get("Authorization")) { if (!(await tokenOk(req, env, "HQ_FRONTDESK_READ_TOKEN_HASH"))) return json(req, 401, { ok: false, error: "bad_token" }); }
+        else { const bad = await checkPin(req, env); if (bad) return bad; }
+        const want = (url.searchParams.get("status") || "all").split(",").filter((x) => x === "all" || REQ_STATUSES.includes(x));
+        const id = url.searchParams.get("id");
+        const rows = new Map((await readRows(env)).rows.map((r) => [r.id, r]));
+        const out = (await readReqs(env)).filter((q) => (!id || q.id === id) && (want.includes("all") || want.includes(q.status))).map((q) => Object.assign({}, q, { kindLabel: REQ_KINDS[q.kind], row: rows.get(q.rowId) || null }));
+        return json(req, 200, { ok: true, requests: out });
+      }
+      if (req.method !== "POST") return json(req, 405, { ok: false, error: "method" });
+      if (!(await tokenOk(req, env))) return json(req, 401, { ok: false, error: "bad_token" });
+      const body = await readJson(req) || {};
+      const list = await readReqs(env);
+      if (Array.isArray(body.deleted)) { const del = new Set(body.deleted.filter((x) => typeof x === "string")); const left = list.filter((q) => !del.has(q.id)); await writeReqs(env, left); return json(req, 200, { ok: true, removed: list.length - left.length }); }
+      const q = list.find((x) => x.id === str(body.id, 64));
+      if (!q) return json(req, 404, { ok: false, error: "no_request" });
+      if (!REQ_STATUSES.includes(body.status) || body.status === "queued") return json(req, 400, { ok: false, error: "bad_status", message: "status must be working, needs_rk, done or failed." });
+      const was = q.status;
+      q.status = body.status; if (body.result !== undefined) q.result = str(body.result, 2000); q.updatedAt = Date.now();
+      await writeReqs(env, list);
+      if (was !== q.status && q.status !== "working") { const row = (await readRows(env)).rows.find((r) => r.id === q.rowId);
+        await addEvents(env, [ev(str(body.by, 60) || "Front Desk", REQ_KINDS[q.kind] + " for " + (row ? title(row) : "a follow-up") + ": " + ({ needs_rk: "needs you", done: "done", failed: "failed" })[q.status], "bot")]); }
+      return json(req, 200, { ok: true, request: q });
+    }
     // Follow-ups activity (merged into HQ's feed by the app).
     if (path === "/hq/activity") {
       if (req.method !== "GET") return json(req, 405, { ok: false, error: "method" });
