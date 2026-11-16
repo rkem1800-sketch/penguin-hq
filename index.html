@@ -263,6 +263,57 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   .wsgrid { grid-template-columns: repeat(4, 1fr); }
   .kcards.cols-wide { grid-template-columns: repeat(5, 1fr); align-items: start; }
 }
+/* ---- Map tab (dispatch map, read-only copy of the ServiceTitan board) ---- */
+#p-map .mp-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 6px 0 10px; }
+#p-map .mp-f { display: flex; flex-direction: column; gap: 4px; }
+#p-map .mp-f label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+#p-map .mp-f input { border: 1px solid var(--line); background: rgba(18,22,38,0.92); border-radius: 14px; padding: 9px 12px; outline: none; color-scheme: dark; height: 44px; }
+#p-map .mp-btn { border: 1px solid var(--line); background: var(--elev); color: var(--ink); border-radius: 14px; padding: 0 14px; height: 44px; font-weight: 800; }
+#p-map .mp-suggest { color: var(--muted); background: var(--elev-2); opacity: 0.7; cursor: not-allowed; margin-left: auto; }
+#p-map .mp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+#p-map .mp-chip { border: 1px solid var(--line); background: var(--elev); color: var(--soft); border-radius: 99px; padding: 6px 12px; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 7px; }
+#p-map .mp-chip .sw { width: 11px; height: 11px; border-radius: 50%; background: var(--c); }
+#p-map .mp-chip[aria-pressed="true"] { color: var(--ink); border-color: var(--c, var(--teal)); background: color-mix(in srgb, var(--c, var(--teal)) 20%, var(--elev)); }
+#p-map .mp-upd { color: var(--muted); font-size: 0.85rem; margin: 0 2px 8px; }
+#p-map .mp-flags { margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.45); font-size: 0.88rem; color: var(--soft); }
+#p-map .mp-flags div + div { margin-top: 4px; }
+#p-map .mp-layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+#p-map .mp-map { position: relative; z-index: 0; isolation: isolate; height: 56vh; min-height: 320px; border-radius: 22px; border: 1px solid var(--line); overflow: hidden; background: #1a1f33; }
+#p-map .mp-side { background: var(--elev); border: 1px solid var(--line); border-radius: 22px; padding: 14px; }
+#p-map .mp-msg { padding: 18px; color: var(--soft); text-align: center; }
+#p-map .tech-block { margin-bottom: 12px; }
+#p-map .tech-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+#p-map .swatch { width: 12px; height: 12px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent); }
+#p-map .tech-name { font-weight: 800; }
+#p-map .tech-total { margin-left: auto; font-size: 0.8rem; font-weight: 700; color: var(--muted); background: var(--elev-2); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
+#p-map .stop { display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: start; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; margin-bottom: 4px; width: 100%; text-align: left; color: inherit; }
+#p-map .stop .num { width: 28px; height: 28px; border-radius: 50%; background: var(--c); color: #071014; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+#p-map .stop .ttl { font-weight: 700; font-size: 0.95rem; }
+#p-map .stop .meta { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+#p-map .stop .warn { color: #fbbf24; font-weight: 700; }
+#p-map .mp-status { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 99px; padding: 3px 8px; white-space: nowrap; color: #071014; background: var(--sc); }
+#p-map .drive { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.75rem; font-weight: 700; margin: 1px 4px 5px 16px; }
+#p-map .drive::before { content: ""; width: 2px; height: 16px; background: color-mix(in srgb, var(--c) 70%, transparent); border-radius: 2px; }
+#p-map .route-note { margin-top: 8px; color: var(--muted); font-size: 0.75rem; }
+#p-map .leaflet-container { background: #1a2238; font-family: var(--sans); }
+#p-map .leaflet-control-attribution { background: rgba(7,10,20,0.75) !important; color: var(--muted) !important; font-size: 10px !important; }
+#p-map .leaflet-control-attribution a { color: var(--teal) !important; }
+#p-map .leaflet-popup-content-wrapper { background: var(--elev); color: var(--ink); border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+#p-map .leaflet-popup-tip { background: var(--elev); }
+#p-map .leaflet-popup-content { margin: 12px 14px; font-family: var(--sans); font-size: 0.9rem; }
+#p-map .leaflet-popup-content strong { font-family: var(--serif); font-size: 1.05rem; display: block; margin-bottom: 4px; }
+#p-map .leaflet-popup-content .pop-meta { color: var(--soft); font-size: 0.85rem; }
+#p-map .leaflet-popup-close-button { color: var(--soft) !important; }
+#p-map .pin-wrap { background: none !important; border: none !important; }
+#p-map .pin-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: #071014; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.45); }
+#p-map .pin-dot.done { opacity: 0.8; border-color: #4ade80; }
+#p-map .pin-dot.working { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.45), 0 4px 12px rgba(0,0,0,0.45); }
+@media (min-width: 900px) {
+  #p-map .mp-layout { grid-template-columns: 1fr 360px; }
+  #p-map .mp-map { height: calc(100dvh - 370px); min-height: 460px; }
+  #p-map .mp-side { max-height: calc(100dvh - 370px); min-height: 460px; overflow: auto; }
+}
+@media (max-width: 600px) { #p-map .mp-suggest { margin-left: 0; } }
 </style>
 </head>
 <body>
@@ -295,6 +346,21 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     <section class="panel" id="p-board"><div id="board"></div></section>
     <section class="panel" id="p-work"><div id="work"></div></section>
 
+    <section class="panel" id="p-map">
+      <div class="mp-top">
+        <div class="mp-f"><label for="mp-date">Date</label><input type="date" id="mp-date" aria-label="Board date"></div>
+        <button type="button" class="mp-btn" id="mp-reload" aria-label="Reload board">↻ Reload</button>
+        <button type="button" class="mp-btn mp-suggest" disabled aria-disabled="true" title="Coming soon">Suggest better order · soon</button>
+      </div>
+      <div class="mp-chips" id="mp-chips"></div>
+      <p class="mp-upd" id="mp-upd"></p>
+      <div class="mp-flags" id="mp-flags" hidden></div>
+      <div class="mp-layout">
+        <div class="mp-map" id="mp-map" role="application" aria-label="Dispatch map"></div>
+        <aside class="mp-side"><div id="mp-stops"></div><p class="route-note" id="mp-note"></p></aside>
+      </div>
+    </section>
+
     <section class="panel" id="p-bots">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -310,6 +376,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     <button role="tab" aria-selected="true" data-tab="home"><span class="ic">🏠</span>Home</button>
     <button role="tab" aria-selected="false" data-tab="board"><span class="ic">✅</span>Board</button>
     <button role="tab" aria-selected="false" data-tab="work"><span class="ic">🗂️</span>Work</button>
+    <button role="tab" aria-selected="false" data-tab="map"><span class="ic">🗺️</span>Map</button>
     <button role="tab" aria-selected="false" data-tab="bots"><span class="ic">🐧</span>Bots</button>
   </nav>
 
@@ -1028,7 +1095,8 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     tab = name;
     document.querySelectorAll(".tabbar button").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
-    $("hdr").textContent = { home: "HQ", board: "Board", work: "Workspaces", bots: "Your bots" }[name];
+    $("hdr").textContent = { home: "HQ", board: "Board", work: "Workspaces", map: "Map", bots: "Your bots" }[name];
+    try { window.dispatchEvent(new CustomEvent("hq:tab", { detail: name })); } catch (e) {}
     window.scrollTo(0, 0);
     try { history.replaceState(null, "", "#" + name + (name === "work" && wsOpen ? "/" + wsOpen : "")); } catch (e) {}
   }
@@ -1058,12 +1126,204 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     renderTiles(); renderChips(); renderAll();
     const h = (location.hash || "").slice(1).split("/");
     if (h[0] === "work" && WS[h[1]]) wsOpen = h[1];
-    if (["home", "board", "work", "bots"].indexOf(h[0]) !== -1) { showTab(h[0]); renderWork(); }
+    if (["home", "board", "work", "map", "bots"].indexOf(h[0]) !== -1) { showTab(h[0]); renderWork(); }
     if (h[0] === "tasks") showTab("board");
     if (pin) syncAll();
   }).catch(function () { $("bot-list").innerHTML = "<p class='empty'>Couldn't load. Pull down to refresh.</p>"; });
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function () {});
+})();
+</script>
+<script>
+/* Map tab: read-only dispatch map. Board comes from the penguin-dispatch-map Worker (same HQ PIN). Never writes anywhere. */
+(function () {
+  "use strict";
+  const MAP_API = "https://penguin-dispatch-map.rkem1800.workers.dev";
+  const LS_PIN = "videoLib.pin.v1";
+  const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  const LEAFLET_CSS_SRI = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=", LEAFLET_JS_SRI = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+  const PALETTE = ["#22c7a9", "#ff5c8a", "#3b82f6", "#fbbf24", "#a78bfa", "#f97316", "#4ade80", "#38bdf8"];
+  const STATUS_COLOR = { scheduled: "#38bdf8", dispatched: "#fbbf24", working: "#f97316", done: "#4ade80", hold: "#a78bfa", canceled: "#94a3b8" };
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function pin() { try { return JSON.parse(localStorage.getItem(LS_PIN)) || ""; } catch (e) { return ""; } }
+  function todayISO() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function fmtET(iso) { try { return new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return iso || ""; } }
+  function fmtMins(m) { m = Math.max(1, Math.round(m)); return m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"; }
+  function stKey(s) { return String(s || "").toLowerCase(); }
+  function statusColor(s) { return STATUS_COLOR[stKey(s)] || "#96a0bd"; }
+
+  let L = null, map = null, layers = null, inited = false, loading = false;
+  let board = null, loadedDate = "", techs = [], selected = {}, renderToken = 0;
+  const routeCache = {};
+
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    return new Promise(function (res, rej) {
+      const css = document.createElement("link"); css.rel = "stylesheet"; css.href = LEAFLET_CSS; css.integrity = LEAFLET_CSS_SRI; css.crossOrigin = ""; document.head.appendChild(css);
+      const s = document.createElement("script"); s.src = LEAFLET_JS; s.integrity = LEAFLET_JS_SRI; s.crossOrigin = "";
+      s.onload = function () { res(window.L); }; s.onerror = function () { rej(new Error("leaflet")); }; document.head.appendChild(s);
+    });
+  }
+  function msg(html) { $("mp-stops").innerHTML = "<div class='mp-msg'>" + html + "</div>"; $("mp-note").textContent = ""; }
+
+  function init() {
+    if (inited) { setTimeout(function () { if (map) map.invalidateSize(); }, 60); maybeLoad(); return; }
+    inited = true;
+    const di = $("mp-date"); di.value = todayISO();
+    di.addEventListener("change", function () { load(true); });
+    $("mp-reload").addEventListener("click", function () { load(true); });
+    msg("Loading map…");
+    loadLeaflet().then(function (lf) {
+      L = lf;
+      map = L.map("mp-map", { zoomControl: true }).setView([35.05, -80.78], 10);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+      layers = L.layerGroup().addTo(map);
+      window.addEventListener("resize", function () { map.invalidateSize(); });
+      setTimeout(function () { map.invalidateSize(); }, 80);
+      load(true);
+    }).catch(function () { msg("Couldn't load the map library. Check your connection and reopen the tab."); });
+  }
+  function maybeLoad() { if (L && (!board || loadedDate !== $("mp-date").value) && !loading) load(true); }
+
+  function load(force) {
+    if (!L) return;
+    const date = $("mp-date").value || todayISO();
+    const p = pin();
+    window.__mapTabReady = false;
+    if (!p) { board = null; loadedDate = ""; clearMap(); $("mp-chips").innerHTML = ""; $("mp-upd").textContent = ""; $("mp-flags").hidden = true; msg("🔒 Sign in with your HQ PIN to see the dispatch map.<br><br><button class='mp-btn' data-signin>Sign in</button>"); window.__mapTabReady = true; return; }
+    loading = true; msg("Loading the board for " + esc(date) + "…");
+    fetch(MAP_API + "/dispatch?date=" + encodeURIComponent(date), { headers: { "X-PIN": p }, cache: "no-store" })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; }); })
+      .then(function (j) {
+        loading = false; loadedDate = date;
+        if (j.httpStatus === 200 && j.board) { setBoard(j.board); return; }
+        board = null; clearMap(); $("mp-chips").innerHTML = ""; $("mp-flags").hidden = true; $("mp-upd").textContent = "";
+        if (j.httpStatus === 404) msg("No board saved for " + esc(date) + " yet.");
+        else if (j.httpStatus === 401) msg("🔒 " + esc(j.message || "Sign in with your PIN.") + "<br><br><button class='mp-btn' data-signin>Sign in</button>");
+        else msg(esc(j.message || "Couldn't load the board.") + " Try ↻ Reload.");
+        window.__mapTabReady = true;
+      })
+      .catch(function () { loading = false; board = null; clearMap(); msg("Couldn't reach the map server. Try ↻ Reload."); window.__mapTabReady = true; });
+  }
+  function clearMap() { if (layers) layers.clearLayers(); }
+
+  function setBoard(b) {
+    board = b;
+    const names = [];
+    (b.jobs || []).forEach(function (j) { if (names.indexOf(j.tech) === -1) names.push(j.tech); });
+    const shared = {};
+    (b.jobs || []).forEach(function (j) { (shared[j.jobNumber] = shared[j.jobNumber] || []).push(j.tech); });
+    techs = names.map(function (n, i) {
+      const stops = b.jobs.filter(function (j) { return j.tech === n; }).slice().sort(function (a, c) { return String(a.start).localeCompare(String(c.start)); });
+      stops.forEach(function (s) { s._with = (shared[s.jobNumber] || []).filter(function (t) { return t !== n; }); });
+      return { name: n, color: PALETTE[i % PALETTE.length], idx: i, stops: stops };
+    });
+    const keep = {}; techs.forEach(function (t) { keep[t.name] = selected[t.name] !== undefined ? selected[t.name] : true; }); selected = keep;
+    $("mp-upd").textContent = "Board read from ServiceTitan " + fmtET(b.updatedAt) + " · " + (b.jobs || []).length + " jobs · " + techs.length + " techs";
+    const fl = $("mp-flags");
+    if (b.notes && b.notes.length) { fl.innerHTML = b.notes.map(function (n) { return "<div>⚠️ " + esc(n) + "</div>"; }).join(""); fl.hidden = false; } else fl.hidden = true;
+    renderChips(); render();
+  }
+  function renderChips() {
+    const all = techs.every(function (t) { return selected[t.name]; });
+    $("mp-chips").innerHTML = "<button type='button' class='mp-chip' data-mp-all aria-pressed='" + all + "'>All techs</button>" +
+      techs.map(function (t) { return "<button type='button' class='mp-chip' data-mp-tech='" + esc(t.name) + "' style='--c:" + t.color + "' aria-pressed='" + !!selected[t.name] + "'><span class='sw'></span>" + esc(t.name) + " · " + t.stops.length + "</button>"; }).join("");
+  }
+  document.addEventListener("click", function (e) {
+    const a = e.target.closest("[data-mp-all]");
+    if (a) { techs.forEach(function (t) { selected[t.name] = true; }); renderChips(); render(); return; }
+    const c = e.target.closest("[data-mp-tech]");
+    if (c) {
+      const n = c.getAttribute("data-mp-tech");
+      const all = techs.every(function (t) { return selected[t.name]; });
+      if (all) techs.forEach(function (t) { selected[t.name] = t.name === n; }); // first tap on a tech = just that tech
+      else selected[n] = !selected[n];
+      if (!techs.some(function (t) { return selected[t.name]; })) techs.forEach(function (t) { selected[t.name] = true; });
+      renderChips(); render(); return;
+    }
+    const s = e.target.closest("[data-mp-stop]");
+    if (s && map) { const m = markers[s.getAttribute("data-mp-stop")]; if (m) { map.setView(m.getLatLng(), Math.max(map.getZoom(), 13)); m.openPopup(); $("mp-map").scrollIntoView({ behavior: "smooth", block: "center" }); } }
+  });
+
+  function hav(a, b) { const R = 3958.8, r = Math.PI / 180; const dLa = (b.lat - a.lat) * r, dLo = (b.lng - a.lng) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+  function fallback(pts) { const legs = []; for (let i = 0; i < pts.length - 1; i++) legs.push(hav(pts[i], pts[i + 1]) * 1.4 / 30 * 60); return { line: pts.map(function (p) { return [p.lat, p.lng]; }), legs: legs, source: "straight" }; }
+  function osrm(pts) {
+    if (pts.length < 2) return Promise.resolve({ line: [], legs: [], source: "none" });
+    const key = pts.map(function (p) { return p.lng.toFixed(5) + "," + p.lat.toFixed(5); }).join(";");
+    if (routeCache[key]) return Promise.resolve(routeCache[key]);
+    const ctrl = new AbortController(); const t = setTimeout(function () { ctrl.abort(); }, 9000);
+    return fetch("https://router.project-osrm.org/route/v1/driving/" + key + "?overview=full&geometries=geojson", { signal: ctrl.signal })
+      .then(function (r) { if (!r.ok) throw new Error("osrm"); return r.json(); })
+      .then(function (d) {
+        if (!d || d.code !== "Ok" || !d.routes || !d.routes[0]) throw new Error("osrm");
+        const out = { line: d.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; }), legs: (d.routes[0].legs || []).map(function (l) { return (l.duration || 0) / 60; }), source: "osrm" };
+        routeCache[key] = out; return out;
+      })
+      .catch(function () { return fallback(pts); })
+      .finally(function () { clearTimeout(t); });
+  }
+
+  let markers = {};
+  function pinIcon(n, color, status, off) {
+    return L.divIcon({ className: "pin-wrap", html: "<div class='pin-dot " + esc(stKey(status)) + "' style='background:" + color + "'>" + n + "</div>", iconSize: [30, 30], iconAnchor: [15 - off, 15 + off], popupAnchor: [off, -16 - off] });
+  }
+  function popup(t, s, n) {
+    return "<strong>" + esc(t.name) + " · Stop " + n + "</strong><div class='pop-meta'><b>" + esc(s.customer) + "</b><br>Job #" + esc(s.jobNumber) + "<br>" + esc(s.address + ", " + s.city + " " + s.state) +
+      "<br>Window: " + esc(s.arrivalWindow) + (s.windowFlag ? " ⚠️" : "") + "<br>" + esc(s.jobType) + "<br>Status: <b style='color:" + statusColor(s.status) + "'>" + esc(s.status) + "</b>" +
+      (s._with && s._with.length ? "<br>👥 Shared with " + esc(s._with.join(", ")) : "") + "</div>";
+  }
+  function render() {
+    if (!board || !L) return;
+    const token = ++renderToken; window.__mapTabReady = false;
+    const list = techs.filter(function (t) { return selected[t.name]; });
+    $("mp-note").textContent = "Loading road routes…";
+    Promise.all(list.map(function (t) {
+      const pts = t.stops.filter(function (s) { return typeof s.lat === "number" && typeof s.lng === "number"; });
+      return osrm(pts).then(function (r) { return { t: t, pts: pts, r: r }; });
+    })).then(function (res) {
+      if (token !== renderToken) return;
+      layers.clearLayers(); markers = {};
+      const bounds = [], seen = {};
+      res.forEach(function (x) {
+        if (x.r.line.length) L.polyline(x.r.line, { color: x.t.color, weight: 5, opacity: 0.85, lineJoin: "round" }).addTo(layers);
+        x.t.stops.forEach(function (s, i) {
+          if (typeof s.lat !== "number") return;
+          const k = s.lat.toFixed(5) + "," + s.lng.toFixed(5); const off = (seen[k] = (seen[k] || 0) + 1) - 1;
+          const m = L.marker([s.lat, s.lng], { icon: pinIcon(i + 1, x.t.color, s.status, off * 10), zIndexOffset: 100 + i + off * 50 }).addTo(layers).bindPopup(popup(x.t, s, i + 1));
+          markers[x.t.idx + ":" + i] = m; bounds.push([s.lat, s.lng]);
+        });
+      });
+      if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 13 });
+      renderSide(res);
+      const src = res.map(function (x) { return x.r.source; }).filter(function (s) { return s !== "none"; });
+      $("mp-note").textContent = !src.length ? "" : src.every(function (s) { return s === "osrm"; }) ? "Route lines and drive times: public OSRM road routing, in scheduled order." : "Some routes couldn't reach OSRM, so those lines are straight and drive times are rough estimates.";
+      setTimeout(function () { map.invalidateSize(); }, 50);
+      window.__mapTabReady = true;
+    });
+  }
+  function renderSide(res) {
+    let html = "";
+    res.forEach(function (x) {
+      const t = x.t; const legs = x.r.legs || []; const total = legs.reduce(function (a, b) { return a + b; }, 0);
+      html += "<div class='tech-block'><div class='tech-head'><span class='swatch' style='--c:" + t.color + "'></span><span class='tech-name'>" + esc(t.name) + "</span><span class='tech-total'>" + t.stops.length + " stops" + (legs.length ? " · " + fmtMins(total) + " drive" : "") + "</span></div>";
+      let li = 0, prevMapped = false;
+      t.stops.forEach(function (s, i) {
+        const mapped = typeof s.lat === "number";
+        if (mapped && prevMapped && legs[li] != null) { html += "<div class='drive' style='--c:" + t.color + "'>Drive " + fmtMins(legs[li]) + "</div>"; li++; }
+        if (mapped) prevMapped = true;
+        html += "<button type='button' class='stop' data-mp-stop='" + t.idx + ":" + i + "' style='--c:" + t.color + "'><div class='num'>" + (i + 1) + "</div><div><div class='ttl'>" + esc(s.customer) + "</div><div class='meta'>#" + esc(s.jobNumber) + " · " + esc(s.address + ", " + s.city) + "<br>" + esc(s.arrivalWindow) +
+          (s.windowFlag ? " <span class='warn'>⚠️ single time in ST</span>" : "") + (s._with && s._with.length ? "<br>👥 with " + esc(s._with.join(", ")) : "") + (mapped ? "" : "<br><span class='warn'>📍 Address not found, not on map</span>") +
+          "</div></div><span class='mp-status' style='--sc:" + statusColor(s.status) + "'>" + esc(s.status) + "</span></button>";
+      });
+      html += "</div>";
+    });
+    $("mp-stops").innerHTML = html || "<div class='mp-msg'>No techs selected.</div>";
+  }
+
+  window.addEventListener("hq:tab", function (e) { if (e.detail === "map") init(); });
+  setInterval(function () { const p = $("p-map"); if (inited && L && !board && !loading && pin() && p && p.classList.contains("active") && $("mp-stops").querySelector("[data-signin]")) load(true); }, 1500); // picks up a PIN entered on the sign-in sheet
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && inited && document.getElementById("p-map").classList.contains("active")) maybeLoad(); });
 })();
 </script>
 </body>
