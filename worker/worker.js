@@ -229,6 +229,10 @@ export default {
         return json(req, 200, { ok: true, added: r.added, updated: r.changed, removed: r.removed, total: r.st.rows.length });
       }
       if (req.method !== "GET" && req.method !== "PUT") return json(req, 405, { ok: false, error: "method" });
+      if (req.method === "GET" && req.headers.get("Authorization")) { // Front Desk read token: read-only
+        if (!(await tokenOk(req, env, "HQ_FRONTDESK_READ_TOKEN_HASH"))) return json(req, 401, { ok: false, error: "bad_token" });
+        return json(req, 200, { ok: true, state: await readRows(env), statuses: STATUSES });
+      }
       const bad = await checkPin(req, env); if (bad) return bad;
       if (req.method === "GET") return json(req, 200, { ok: true, state: await readRows(env), statuses: STATUSES });
       const body = await readJson(req);

@@ -138,6 +138,7 @@ Each Follow-ups card has big buttons: **📞 Call** (`tel:`) and **💬 Text** (
 | Endpoint | Auth | Body / query | Response |
 |---|---|---|---|
 | `POST /hq/followups/request` | `X-PIN` | `{"rowId":"fu-…","kind":"reply\|schedule\|check\|ask","note":"optional (required for ask), max 1000"}` | `200 {ok:true, webhookStatus, request}`; `502 {ok:false, error:"webhook_failed", webhookStatus, request, message}` (saved, still queued); `400 bad_kind / note_required`; `404 no_row`; `429 too_many` (20 per rolling hour, `retryAfter` s); `503 not_configured` |
+| `GET /hq/ws/followups` | `Authorization: Bearer $PENGUIN_HQ_FRONTDESK_READ_TOKEN` (read-only, Front Desk) | — | Same as the PIN GET: `{ok, state:{rows, deleted, updatedAt}, statuses}`. Bots must GET first and reuse an existing id when phone, email or name matches. |
 | `GET /hq/followups/requests?status=queued` | `Authorization: Bearer $PENGUIN_HQ_FRONTDESK_READ_TOKEN` (Front Desk) or `X-PIN` (app) | `status` = comma list of `queued,working,needs_rk,done,failed` or `all` (default); optional `id=rq-…` | `{ok:true, requests:[{id, rowId, kind, kindLabel, note, status, result, createdAt, updatedAt, row:{…full follow-up row…} or null}]}` |
 | `POST /hq/followups/requests` | write token | `{"id":"rq-…","status":"working\|needs_rk\|done\|failed","result":"text for the card, max 2000","by":"Front Desk"}` or `{"deleted":["rq-…"]}` | `{ok:true, request}` / `{ok:true, removed}`; `400 bad_status`; `404 no_request` |
 
