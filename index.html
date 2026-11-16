@@ -240,6 +240,10 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .fu-want { font-size: 1.02rem; margin-top: 4px; color: var(--ink); }
 .fu-links { margin-left: 68px; }
 .fu-links a { text-decoration: none; }
+.yn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0 68px; }
+.yn { border: 2px solid var(--elev-2); background: rgba(255,255,255,0.06); color: var(--ink); border-radius: 14px; padding: 10px 12px; font-size: 1rem; font-weight: 800; min-height: 48px; }
+.yn-yes { border-color: #4ade80; background: rgba(74,222,128,0.16); }
+.yn-no { border-color: #f87171; background: rgba(248,113,113,0.14); }
 .fu-done-lbl { margin: 6px 0 0 68px; font-size: 0.8rem; color: var(--muted); }
 @media (min-width: 900px) {
   .main { max-width: 1100px; }
@@ -353,7 +357,9 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       sub: function (r) { return [r.address && "📍 " + esc(r.address), r.due && "Due " + fmtDate(r.due), r.owner && "👤 " + esc(r.owner)].filter(Boolean).join(" · "); }, notes: function (r) { return r.comments; } }
   };
   const FU_CHANNELS = ["ST Chat", "ST Lead", "ST Booking", "Missed call", "Signpost", "Google LSA", "Voicemail", "Web form", "Email"];
-  const FU_CLOSED = { "Handled": 1, "Do not contact": 1 };
+  const FU_CLOSED = { "Handled": 1, "Do not contact": 1, "Booked": 1 };
+  const YN = [["called", "Called?"], ["booked", "Booked?"], ["chatted", "Chatted?"]];
+  function ynIcon(v) { return v === "yes" ? "✅" : v === "no" ? "❌" : "⬜"; }
   function fuOpen(r) { return !FU_CLOSED[r.status]; }
   function fuUrgent(r) { return r.urgency === "urgent" || r.status === "Urgent"; }
   function fmtET(s) { // "YYYY-MM-DD HH:MM" in ET
@@ -365,7 +371,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   WS.followups = { name: "Follow-ups", emoji: "📞", color: "#0ea5e9", noun: "follow-up", idPrefix: "fu-rk-",
     statuses: [["Waiting", "#38bdf8"], ["Urgent", "#ef4444"], ["Contacted", "#fbbf24"], ["Booked", "#a78bfa"], ["Handled", "#4ade80"], ["Do not contact", "#94a3b8"]],
     fields: [["customer", "Customer", "text"], ["phone", "Phone", "tel"], ["email", "Email", "email"], ["channel", "Channel", "select", FU_CHANNELS],
-      ["contactedAt", "Contacted (ET)", "dt"], ["want", "What they want", "long"], ["urgency", "Urgency", "select", ["normal", "urgent"]], ["job", "ST job #", "text"], ["note", "Note", "long"]],
+      ["contactedAt", "Contacted (ET)", "dt"], ["want", "What they want", "long"], ["urgency", "Urgency", "select", ["normal", "urgent"]], ["called", "Called them back?", "yn"], ["booked", "Job booked?", "yn"], ["chatted", "Texted or chatted?", "yn"], ["job", "ST job #", "text"], ["note", "Note", "long"]],
     title: function (r) { return r.customer || r.phone || r.email || "Contact"; },
     sub: function (r) { return [r.contactedAt && esc(fmtET(r.contactedAt)), r.job && "Job " + esc(r.job)].filter(Boolean).join(" · "); },
     notes: function (r) { return r.note; } };
@@ -728,6 +734,14 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
         persist(C.followups);
       });
     });
+    el.querySelectorAll("[data-yn]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const parts = b.getAttribute("data-yn").split(":"), k = parts.pop(), id = parts.join(":");
+        const r = C.followups.items.find(function (x) { return x.id === id; }); if (!r) return;
+        r[k] = { "": "yes", yes: "no", no: "" }[r[k] || ""]; r.updatedAt = Date.now();
+        persist(C.followups);
+      });
+    });
     const rn = $("fu-run"); if (rn) rn.addEventListener("click", runSweep);
     if (wsOpen === "followups" && !sweep.loadedAt) loadSweep();
   }
@@ -745,7 +759,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     const notConn = sweep.connected === false;
     const f = sweep.lastSweepFinished;
     return "<div class='sweep'><button class='run-btn' id='fu-run'" + (notConn || sweep.busy ? " disabled" : "") + ">" +
-      (sweep.busy ? "⏳ Starting…" : notConn ? "🔌 Sweep not connected yet" : "▶ Run now") + "</button>" +
+      (sweep.busy ? "⏳ Starting…" : notConn ? "🔌 Sweep not connected yet" : "▶ Run update") + "</button>" +
       (sweep.msg ? "<p class='sweep-msg'>" + esc(sweep.msg) + "</p>" : "") +
       "<p class='sweep-times'>Last run: <b>" + esc(fmtIsoET(sweep.lastRunRequested)) + "</b><br>Last finished: <b>" + esc(f ? fmtIsoET(f.at) : "never") + "</b>" +
       (f && f.summary ? "<br>" + esc((f.by ? f.by + ": " : "") + f.summary) : "") + "</p></div>";
@@ -772,6 +786,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       "<div class='ttl' style='margin-top:6px'>" + esc(WS.followups.title(r)) + "</div>" + (r.want ? "<div class='fu-want'>" + esc(r.want) + "</div>" : "") +
       "<div class='row-sub'>" + WS.followups.sub(r) + "</div>" + (r.note ? "<div class='notes'>" + esc(r.note) + "</div>" : "") +
       (r.lastSeen ? "<div class='notes'>Last seen by sweep: " + esc(fmtDate(r.lastSeen)) + "</div>" : "") + "</button></div>" +
+      "<div class='yn-row'>" + YN.map(function (y) { const v = r[y[0]] || ""; return "<button class='yn yn-" + (v || "blank") + "' data-yn='" + esc(r.id) + ":" + y[0] + "' aria-label='" + y[1] + " " + (v || "not checked") + "'>" + y[1] + " " + ynIcon(v) + "</button>"; }).join("") + "</div>" +
       (links ? "<div class='meta fu-links'>" + links + "</div>" : "") + "<div class='fu-done-lbl'>" + (done ? "Done ✓" : "Tap the box when it's handled") + "</div></div>";
   }
   function editRow(w, id) {
@@ -787,6 +802,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
         return "<button type='button' style='--pc:#fbbf24' data-flag='" + esc(fl) + "' aria-pressed='" + ((val || []).indexOf(fl) !== -1) + "'>" + esc(fl) + "</button>"; }).join("") + "</div></div>";
       else if (f[2] === "select") { const opts = f[3].slice(); if (val && opts.indexOf(val) === -1) opts.push(val);
         html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><select id='f-" + k + "'>" + (k === "urgency" ? "" : "<option value=''>—</option>") + opts.map(function (o) { return "<option" + (val === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + "</select></div>"; }
+      else if (f[2] === "yn") html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><select id='f-" + k + "'>" + [["", "⬜ Not checked yet"], ["yes", "✅ Yes"], ["no", "❌ No"]].map(function (o) { return "<option value='" + o[0] + "'" + ((val || "") === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></div>";
       else if (f[2] === "dt") html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><input id='f-" + k + "' type='datetime-local' value='" + esc((val || "").replace(" ", "T")) + "'></div>";
       else html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><input id='f-" + k + "' type='" + (f[2] === "number" ? "number' step='0.01' inputmode='decimal" : f[2]) + "' value='" + esc(val == null ? "" : val) + "'></div>";
     });
