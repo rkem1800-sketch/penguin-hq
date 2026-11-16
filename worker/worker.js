@@ -154,6 +154,29 @@ async function writeRows(env, body, mode, by) {
 function webhookKey(env) { return String(env.FRONTDESK_SWEEP_WEBHOOK_KEY || "").trim().replace(/^authorization:\s*/i, "").replace(/^bearer\s+/i, ""); }
 function connected(env) { return !!(String(env.FRONTDESK_SWEEP_WEBHOOK_URL || "").trim() && webhookKey(env)); }
 
+async function runSweep(req, env, by) {
+  if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "Run update isn't connected yet.", connected: false });
+  const meta = (await env.KV.get(KEY_SWEEP, "json")) || {};
+  const prev = meta.lastRunRequested || null;
+  const last = prev ? Date.parse(prev) : 0;
+  const wait = Math.ceil((last + RUN_EVERY_MS - Date.now()) / 1000);
+  if (wait > 0) return json(req, 429, { ok: false, error: "too_soon", message: "An update just started. Try again in " + (wait > 60 ? Math.ceil(wait / 60) + " minutes." : wait + " seconds."), retryAfter: wait, lastRunRequested: prev });
+  const requestedAt = new Date().toISOString();
+  meta.lastRunRequested = requestedAt;
+  await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
+  let resp;
+  try {
+    resp = await fetch(String(env.FRONTDESK_SWEEP_WEBHOOK_URL).trim(), { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + webhookKey(env) }, body: JSON.stringify({ source: "penguin-hq", action: "sweep", requestedAt }) });
+  } catch (e) { resp = null; }
+  if (!resp || !resp.ok) { // failed: don't hold RK to the 5-minute wait
+    meta.lastRunRequested = prev; await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
+    if (!resp) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev });
+    return json(req, 502, { ok: false, webhookStatus: resp.status, lastRunRequested: prev, message: "The Front Desk bot didn't accept the request (HTTP " + resp.status + ")." });
+  }
+  await addEvents(env, [ev(by, "Started a follow-up sweep", "bot")]);
+  return json(req, 200, { ok: true, webhookStatus: resp.status, lastRunRequested: requestedAt, message: "Sweep started" });
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -209,26 +232,7 @@ export default {
     if (path === "/hq/followups/run") {
       if (req.method !== "POST") return json(req, 405, { ok: false, error: "method" });
       const bad = await checkPin(req, env); if (bad) return bad;
-      if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "Run update isn't connected yet.", connected: false });
-      const meta = (await env.KV.get(KEY_SWEEP, "json")) || {};
-      const prev = meta.lastRunRequested || null;
-      const last = prev ? Date.parse(prev) : 0;
-      const wait = Math.ceil((last + RUN_EVERY_MS - Date.now()) / 1000);
-      if (wait > 0) return json(req, 429, { ok: false, error: "too_soon", message: "An update just started. Try again in " + (wait > 60 ? Math.ceil(wait / 60) + " minutes." : wait + " seconds."), retryAfter: wait, lastRunRequested: prev });
-      const requestedAt = new Date().toISOString();
-      meta.lastRunRequested = requestedAt;
-      await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
-      let resp;
-      try {
-        resp = await fetch(String(env.FRONTDESK_SWEEP_WEBHOOK_URL).trim(), { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + webhookKey(env) }, body: JSON.stringify({ source: "penguin-hq", action: "sweep", requestedAt }) });
-      } catch (e) { resp = null; }
-      if (!resp || !resp.ok) { // failed: don't hold RK to the 5-minute wait
-        meta.lastRunRequested = prev; await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
-        if (!resp) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev });
-        return json(req, 502, { ok: false, webhookStatus: resp.status, lastRunRequested: prev, message: "The Front Desk bot didn't accept the request (HTTP " + resp.status + ")." });
-      }
-      await addEvents(env, [ev("RK", "Started a follow-up sweep", "bot")]);
-      return json(req, 200, { ok: true, webhookStatus: resp.status, lastRunRequested: requestedAt, message: "Sweep started" });
+      return runSweep(req, env, "RK");
     }
 
     // Follow-ups activity (merged into HQ's feed by the app).
