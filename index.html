@@ -160,7 +160,78 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .err { color: #fca5a5; min-height: 1.2em; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 [hidden] { display: none !important; }
-  </style>
+  /* ---- v3: board, workspaces, activity ---- */
+.tabbar button { font-size: 11px; }
+.hello { font-family: var(--serif); font-size: 1.5rem; margin: 6px 2px 0; }
+.panel-box { background: var(--elev); border: 1px solid var(--line); border-radius: 22px; padding: 14px; }
+.needs { border-radius: 22px; padding: 16px; margin-top: 14px; background: linear-gradient(150deg, rgba(244,114,182,0.22), var(--elev) 70%); border: 1px solid rgba(244,114,182,0.4); }
+.needs h3 { margin: 0 0 10px; font-size: 1.25rem; display: flex; gap: 8px; align-items: center; }
+.needs .item { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; background: rgba(0,0,0,0.25); border-radius: 14px; padding: 12px; margin-top: 8px; color: inherit; }
+.needs .item .t { flex: 1; font-weight: 600; font-size: 1.02rem; }
+.needs .item .k { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 99px; background: var(--c, #f472b6); color: #0b0f1c; white-space: nowrap; }
+.needs .none { color: var(--soft); margin: 0; }
+.wsgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wscard { text-align: left; border: 0; border-radius: 22px; padding: 16px 14px; color: #fff; min-height: 128px; display: flex; flex-direction: column; gap: 4px;
+  background: linear-gradient(150deg, var(--c), color-mix(in srgb, var(--c) 45%, #000)); box-shadow: 0 10px 26px color-mix(in srgb, var(--c) 30%, transparent); }
+.wscard .e { font-size: 1.8rem; }
+.wscard .n { font-weight: 800; font-size: 1.08rem; line-height: 1.15; }
+.wscard .c { font-family: var(--serif); font-size: 2rem; font-weight: 700; margin-top: auto; line-height: 1; }
+.wscard .s { font-size: 0.82rem; opacity: 0.92; font-weight: 600; }
+.wscard.big { min-height: 150px; }
+.toolbar { display: flex; gap: 8px; align-items: center; margin: 4px 0 10px; }
+.toolbar input[type=search], .toolbar select, .inp { flex: 1; min-width: 0; border: 1px solid var(--line); background: rgba(18,22,38,0.92); border-radius: 14px; padding: 13px 14px; font-size: 1.02rem; outline: none; -webkit-appearance: none; color: var(--ink); }
+.add-btn { flex: 0 0 auto; border: 0; border-radius: 14px; padding: 13px 16px; font-weight: 800; font-size: 1.02rem; color: #fff; background: linear-gradient(135deg, var(--teal), var(--blue)); }
+.cols { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; margin-bottom: 4px; scrollbar-width: none; }
+.cols::-webkit-scrollbar { display: none; }
+.col-tab { flex: 0 0 auto; border: 2px solid var(--c); background: transparent; color: var(--ink); border-radius: 16px; padding: 9px 13px; font-weight: 800; font-size: 0.98rem; }
+.col-tab .k { display: inline-block; min-width: 24px; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--c); color: #0b0f1c; font-size: 0.85rem; }
+.col-tab[aria-pressed="true"] { background: var(--c); color: #0b0f1c; }
+.col-tab[aria-pressed="true"] .k { background: #0b0f1c; color: var(--c); }
+.col-hint { color: var(--muted); font-size: 0.88rem; margin: 0 2px 10px; }
+.kcards { display: grid; gap: 10px; }
+.kcard { background: var(--elev); border: 1px solid var(--line); border-left: 6px solid var(--c); border-radius: 18px; padding: 12px 12px 10px; }
+.kcard .main-tap { border: 0; background: transparent; color: inherit; text-align: left; width: 100%; padding: 0; }
+.kcard .ttl { font-size: 1.12rem; font-weight: 700; line-height: 1.25; word-wrap: break-word; }
+.kcard .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; font-size: 0.88rem; color: var(--soft); }
+.kcard .notes { color: var(--muted); font-size: 0.92rem; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--pc); color: #0b0f1c; }
+.pill.soft { background: rgba(255,255,255,0.08); color: var(--soft); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.85rem; }
+.pill.late { background: #ef4444; color: #fff; text-transform: none; letter-spacing: 0; }
+.mover { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+.mover button { flex: 1; border: 1px solid var(--line); background: var(--elev-2); border-radius: 12px; min-height: 46px; padding: 6px 10px; font-size: 0.98rem; font-weight: 800; color: var(--ink); }
+.mover button:disabled { opacity: 0.3; }
+.mover .lbl { flex: 1; text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+.back { border: 0; background: transparent; color: var(--teal); font-weight: 800; font-size: 1.05rem; padding: 8px 0; }
+.ws-title { font-family: var(--serif); font-size: 1.7rem; margin: 2px 0 10px; display: flex; gap: 10px; align-items: center; }
+.row-sub { color: var(--soft); font-size: 0.95rem; margin-top: 4px; }
+.flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.empty-box { text-align: center; border: 2px dashed var(--line); border-radius: 22px; padding: 30px 16px; color: var(--soft); }
+.empty-box .big { font-size: 2.4rem; }
+.empty-box p { margin: 8px 0 14px; font-size: 1.08rem; }
+.act-day { font-size: 0.8rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 800; margin: 16px 2px 8px; }
+.act { display: flex; gap: 10px; align-items: flex-start; background: var(--elev); border: 1px solid var(--line); border-radius: 16px; padding: 11px 12px; margin-bottom: 8px; }
+.act .ic { font-size: 1.3rem; line-height: 1.2; }
+.act .tx { flex: 1; font-size: 1rem; }
+.act .tx b { color: var(--teal); }
+.act .tm { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+.more { width: 100%; margin-top: 4px; }
+.form-grid { display: grid; gap: 12px; margin-top: 10px; }
+.form-grid label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; color: var(--soft); }
+.form-grid input, .form-grid select, .form-grid textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 13px; font-size: 1.05rem; outline: none; color: var(--ink); -webkit-appearance: none; }
+.form-grid textarea { min-height: 90px; resize: vertical; }
+.seg { display: flex; gap: 8px; flex-wrap: wrap; }
+.seg button { flex: 1; border: 2px solid var(--pc, var(--line)); background: transparent; border-radius: 12px; padding: 11px 8px; font-weight: 800; color: var(--ink); min-width: 70px; }
+.seg button[aria-pressed="true"] { background: var(--pc, var(--teal)); color: #0b0f1c; }
+.check { display: flex; gap: 10px; align-items: center; font-weight: 700; }
+.check input { width: 26px; height: 26px; }
+.danger { border: 1px solid #ef4444; background: transparent; color: #fca5a5; border-radius: 14px; padding: 12px 16px; font-weight: 800; }
+.danger.sure { background: #ef4444; color: #fff; }
+@media (min-width: 900px) {
+  .main { max-width: 1100px; }
+  .wsgrid { grid-template-columns: repeat(4, 1fr); }
+  .kcards.cols-wide { grid-template-columns: repeat(5, 1fr); align-items: start; }
+}
+</style>
 </head>
 <body>
   <header class="app-header">
@@ -180,10 +251,17 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   <main class="main">
     <section class="panel active" id="p-home">
       <div id="brief"></div>
-      <div class="stats" id="stats"></div>
+      <div id="needs"></div>
+      <h2 class="sec-h">Workspaces</h2>
+      <div class="wsgrid" id="home-ws"></div>
+      <h2 class="sec-h">Activity</h2>
+      <div id="activity"></div>
       <h2 class="sec-h">Your apps</h2>
       <div class="tiles" id="tiles"></div>
     </section>
+
+    <section class="panel" id="p-board"><div id="board"></div></section>
+    <section class="panel" id="p-work"><div id="work"></div></section>
 
     <section class="panel" id="p-bots">
       <div class="search-wrap">
@@ -194,16 +272,13 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       <div id="bot-list"></div>
       <p class="note" id="jobs-note"></p>
     </section>
-
-    <section class="panel" id="p-tasks">
-      <div id="tasks"></div>
-    </section>
   </main>
 
   <nav class="tabbar" role="tablist">
     <button role="tab" aria-selected="true" data-tab="home"><span class="ic">🏠</span>Home</button>
+    <button role="tab" aria-selected="false" data-tab="board"><span class="ic">✅</span>Board</button>
+    <button role="tab" aria-selected="false" data-tab="work"><span class="ic">🗂️</span>Work</button>
     <button role="tab" aria-selected="false" data-tab="bots"><span class="ic">🐧</span>Bots</button>
-    <button role="tab" aria-selected="false" data-tab="tasks"><span class="ic">✅</span>Tasks</button>
   </nav>
 
   <div class="backdrop" id="backdrop" hidden></div>
@@ -217,23 +292,85 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   "use strict";
   const API = "https://video-library-api.rkem1800.workers.dev";
   // Same PIN as the Video Library. Same site, so a PIN saved there signs you in here too.
-  const LS_PIN = "videoLib.pin.v1";
-  const LS_TASKS = "hq.tasks.v1", LS_TOMBS = "hq.deleted.v1", LS_DIRTY = "hq.dirty.v1", LS_SYNCED = "hq.syncedAt.v1", LS_BRIEF = "hq.brief.v1";
+  const LS_PIN = "videoLib.pin.v1", LS_SYNCED = "hq.syncedAt.v1", LS_BRIEF = "hq.brief.v1", LS_ACT = "hq.activity.v1";
+  const DAY = 86400000, DONE_KEEP = 14 * DAY;
   function load(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function safeUrl(u) { return /^(https:\/\/|grokbot:\/\/)/i.test(u || "") ? u : "#"; }
+  function uid(p) { return (p || "x") + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function $(id) { return document.getElementById(id); }
 
+  /* ---------- Schemas (labels only, no data) ---------- */
+  const STATUSES = [
+    { id: "todo", name: "To Do", color: "#38bdf8" }, { id: "doing", name: "In Progress", color: "#fbbf24" },
+    { id: "review", name: "For Review", color: "#f472b6" }, { id: "done", name: "Done", color: "#4ade80" },
+    { id: "future", name: "Future", color: "#a78bfa" }];
+  const PRI = { high: { name: "High", color: "#ef4444" }, med: { name: "Med", color: "#f59e0b" }, low: { name: "Low", color: "#22c55e" } };
+  const FLAGS = ["permit", "return visit", "parts", "estimate", "rebate", "photos"];
+  const WS = {
+    ar: { name: "AR Collections", emoji: "💵", color: "#16a34a", noun: "invoice",
+      statuses: [["Not due", "#94a3b8"], ["Due", "#fbbf24"], ["In collection", "#f97316"], ["Paid", "#4ade80"], ["Forgiven", "#a78bfa"], ["Do not contact", "#f87171"]],
+      fields: [["customer", "Customer", "text"], ["invoice", "Invoice #", "text"], ["balance", "Balance ($)", "number"], ["due", "Due date", "date"], ["lastContact", "Last contact", "date"], ["note", "Note", "long"]],
+      title: function (r) { return r.customer || "Invoice " + (r.invoice || ""); },
+      sub: function (r) {
+        const out = [];
+        if (r.invoice) out.push("#" + esc(r.invoice));
+        if (r.balance != null && r.balance !== "") out.push("<b>$" + Number(r.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</b>");
+        if (r.due) { const od = daysOver(r.due); out.push("Due " + fmtDate(r.due) + (od > 0 && ["Paid", "Forgiven"].indexOf(r.status) === -1 ? " · <span class='pill late'>" + od + " days overdue</span>" : "")); }
+        if (r.lastContact) out.push("Last contact " + fmtDate(r.lastContact));
+        return out.join(" · ");
+      }, notes: function (r) { return r.note; } },
+    closeout: { name: "Job Closeout", emoji: "🧾", color: "#2563eb", noun: "job",
+      statuses: [["Unresolved", "#f97316"], ["Incomplete", "#fbbf24"], ["Closed out", "#4ade80"]],
+      fields: [["job", "Job #", "text"], ["customer", "Customer", "text"], ["tech", "Tech", "text"], ["date", "Job date", "date"], ["flags", "Follow-ups", "flags"], ["note", "Note", "long"]],
+      title: function (r) { return (r.job ? "Job " + r.job : "Job") + (r.customer ? " · " + r.customer : ""); },
+      sub: function (r) { return [r.tech && "👷 " + esc(r.tech), r.date && fmtDate(r.date)].filter(Boolean).join(" · "); }, notes: function (r) { return r.note; } },
+    members: { name: "Membership Tracker", emoji: "🎟️", color: "#9333ea", noun: "member",
+      statuses: [["Active not due", "#94a3b8"], ["Confirmed due", "#fbbf24"], ["Scheduled", "#38bdf8"], ["Completed", "#4ade80"], ["Expired", "#f87171"]],
+      fields: [["customer", "Customer", "text"], ["plan", "Plan", "text"], ["lastVisit", "Last visit", "date"], ["nextDue", "Next due", "date"], ["note", "Note", "long"]],
+      title: function (r) { return r.customer || "Member"; },
+      sub: function (r) { return [r.plan && esc(r.plan), r.lastVisit && "Last " + fmtDate(r.lastVisit), r.nextDue && "Next " + fmtDate(r.nextDue)].filter(Boolean).join(" · "); }, notes: function (r) { return r.note; } },
+    permits: { name: "Permits", emoji: "📜", color: "#ea580c", noun: "permit",
+      statuses: [["Not started", "#94a3b8"], ["In progress", "#fbbf24"], ["Submitted", "#38bdf8"], ["Approved", "#4ade80"], ["Closed", "#a78bfa"]],
+      fields: [["job", "Job #", "text"], ["customer", "Customer", "text"], ["address", "Address / town", "text"], ["due", "Due date", "date"], ["owner", "Owner", "text"], ["comments", "Comments", "long"]],
+      title: function (r) { return (r.job ? "Job " + r.job : "Permit") + (r.customer ? " · " + r.customer : ""); },
+      sub: function (r) { return [r.address && "📍 " + esc(r.address), r.due && "Due " + fmtDate(r.due), r.owner && "👤 " + esc(r.owner)].filter(Boolean).join(" · "); }, notes: function (r) { return r.comments; } }
+  };
+  const WS_ORDER = ["ar", "closeout", "members", "permits"];
+  function wsColor(w, status) { const s = WS[w].statuses.find(function (x) { return x[0] === status; }); return s ? s[1] : "#94a3b8"; }
+
+  /* ---------- Dates ---------- */
+  function parseD(s) { if (!s) return null; const p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function today0() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function daysOver(s) { const d = parseD(s); return d ? Math.round((today0() - d) / DAY) : 0; }
+  function fmtDate(s) { const d = parseD(s); return d ? d.toLocaleDateString([], { month: "short", day: "numeric", year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined }) : ""; }
+  function fmtWhen(ts) { return ts ? new Date(ts).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""; }
+  function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+
+  /* ---------- State ---------- */
   let data = { areas: [], bots: [], links: [] };
   let pin = load(LS_PIN, "") || "";
-  let tasks = load(LS_TASKS, []), tombs = load(LS_TOMBS, []);
-  let brief = load(LS_BRIEF, null);
-  let syncNote = "", pushTimer = null, area = "all", query = "", taskFilter = "open", briefState = pin ? "loading" : "locked";
+  let brief = load(LS_BRIEF, null), events = load(LS_ACT, []);
+  let syncNote = "", tab = "home", briefState = pin ? "loading" : "locked";
+  let boardCol = "todo", boardQ = "", boardBot = "", boardPri = "", wsOpen = "", wsStatus = "", wsQ = "", actShown = 15;
+  function makeColl(name, path, list, lsItems, lsTombs) {
+    return { name: name, path: path, list: list, lsI: lsItems, lsT: lsTombs, items: load(lsItems, []), tombs: load(lsTombs, []), dirty: load(lsItems + ".dirty", false), timer: null };
+  }
+  // Tasks keep their old localStorage keys so tasks made before the board carry over.
+  const C = { tasks: makeColl("tasks", "/hq/state", "tasks", "hq.tasks.v1", "hq.deleted.v1") };
+  WS_ORDER.forEach(function (w) { C[w] = makeColl(w, "/hq/ws/" + w, "rows", "hq.ws." + w + ".v1", "hq.ws." + w + ".del.v1"); });
+  function normTask(t) {
+    if (!t.status) t.status = t.done ? "done" : "todo";
+    t.done = t.status === "done";
+    return t;
+  }
+  C.tasks.items = C.tasks.items.map(normTask);
 
   function areaOf(id) { return data.areas.find(function (a) { return a.id === id; }) || { name: "", color: "#22c7a9", emoji: "" }; }
   function botOf(id) { return data.bots.find(function (b) { return b.id === id; }); }
 
-  /* ---------- API (same flow as Video Library) ---------- */
+  /* ---------- API + sync (same flow as Video Library) ---------- */
   function api(path, opts) {
     opts = opts || {};
     const headers = { "Content-Type": "application/json" };
@@ -243,59 +380,65 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; }); });
   }
   function signOut(reason) { pin = ""; try { localStorage.removeItem(LS_PIN); } catch (e) {} syncNote = reason || ""; briefState = "locked"; renderAll(); }
-  function persist() {
-    save(LS_TASKS, tasks); save(LS_TOMBS, tombs);
+  function saveColl(c) { save(c.lsI, c.items); save(c.lsT, c.tombs); save(c.lsI + ".dirty", c.dirty); }
+  function adopt(c, st) {
+    c.items = (Array.isArray(st[c.list]) ? st[c.list] : []).map(function (x) { return c.name === "tasks" ? normTask(x) : x; });
+    c.tombs = Array.isArray(st.deleted) ? st.deleted : []; c.dirty = false; saveColl(c); save(LS_SYNCED, Date.now());
+  }
+  function persist(c) {
+    c.dirty = !!pin; saveColl(c);
+    renderAll();
     if (!pin) return;
-    save(LS_DIRTY, true);
-    if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(pushState, 600);
+    if (c.timer) clearTimeout(c.timer);
+    c.timer = setTimeout(function () { push(c); }, 700);
   }
-  function adopt(st) {
-    tasks = Array.isArray(st.tasks) ? st.tasks : []; tombs = Array.isArray(st.deleted) ? st.deleted : [];
-    save(LS_TASKS, tasks); save(LS_TOMBS, tombs); save(LS_SYNCED, Date.now()); save(LS_DIRTY, false);
-  }
-  function pushState() {
-    pushTimer = null;
+  function push(c) {
+    c.timer = null;
     if (!pin) return Promise.resolve();
-    return api("/hq/state", { method: "PUT", body: { tasks: tasks, deleted: tombs } }).then(function (j) {
-      if (j.ok && j.state) { adopt(j.state); syncNote = ""; }
-      else if (j.httpStatus === 401) signOut("Your PIN stopped working. Sign in again.");
+    const body = { deleted: c.tombs }; body[c.list] = c.items;
+    return api(c.path, { method: "PUT", body: body }).then(function (j) {
+      if (j.ok && j.state) { adopt(c, j.state); syncNote = ""; pullActivity(); }
+      else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
       else syncNote = j.message || ("Sync failed (HTTP " + j.httpStatus + ").");
-      renderTasks(); renderStats();
-    }).catch(function () { syncNote = "Offline. Saved on this phone, will sync later."; renderTasks(); });
+      renderAll();
+    }).catch(function () { syncNote = "Offline. Saved on this phone, will sync later."; renderAll(); });
   }
-  function pullState() {
+  function pull(c) {
     if (!pin) return Promise.resolve();
-    // Server merges by task, so pushing local changes also pulls everyone else's.
-    if (load(LS_DIRTY, false)) return pushState();
-    return api("/hq/state").then(function (j) {
-      if (j.ok && j.state) { adopt(j.state); syncNote = ""; }
-      else if (j.httpStatus === 401) signOut("Your PIN stopped working. Sign in again.");
+    if (c.dirty) return push(c); // the server merges by item, so a push also brings back other devices' changes
+    return api(c.path).then(function (j) {
+      if (j.ok && j.state) { adopt(c, j.state); syncNote = ""; }
+      else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
       else if (j.message) syncNote = j.message;
-      renderTasks(); renderStats();
-    }).catch(function () { syncNote = "Offline. Showing what's saved on this phone."; renderTasks(); });
+    }).catch(function () { syncNote = "Offline. Showing what's saved on this phone."; });
   }
   function pullBrief() {
-    if (!pin) { briefState = "locked"; renderBrief(); return Promise.resolve(); }
+    if (!pin) { briefState = "locked"; return Promise.resolve(); }
     return api("/hq/brief").then(function (j) {
       if (j.ok) { brief = j.brief || null; save(LS_BRIEF, brief); briefState = "ok"; }
-      else if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
+      else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
       else briefState = brief ? "ok" : "error";
-      renderBrief();
-    }).catch(function () { briefState = brief ? "ok" : "offline"; renderBrief(); });
+    }).catch(function () { briefState = brief ? "ok" : "offline"; });
   }
-  function syncAll() { return Promise.all([pullState(), pullBrief()]); }
+  let actTimer = null;
+  function pullActivity() {
+    if (!pin) return Promise.resolve();
+    if (actTimer) clearTimeout(actTimer);
+    return new Promise(function (res) {
+      actTimer = setTimeout(function () {
+        api("/hq/activity").then(function (j) { if (j.ok) { events = j.events || []; save(LS_ACT, events); renderActivity(); } }).catch(function () {}).then(res);
+      }, 300);
+    });
+  }
+  function syncAll() {
+    return Promise.all([pullBrief()].concat(Object.keys(C).map(function (k) { return pull(C[k]); }))).then(function () { return pullActivity(); }).then(renderAll);
+  }
 
   /* ---------- Home ---------- */
-  function fmtWhen(ts) {
-    if (!ts) return "";
-    const d = new Date(ts);
-    return d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  }
   function renderBrief() {
-    const el = document.getElementById("brief");
+    const el = $("brief");
     if (!pin) {
-      el.innerHTML = "<div class='brief empty'><div class='lbl'>☀️ Daily brief</div><h2>Sign in to see today's brief</h2><button type='button' data-signin>Enter PIN</button></div>";
+      el.innerHTML = "<div class='brief empty'><div class='lbl'>☀️ Daily brief</div><h2>Sign in to see today's brief and your work</h2><button type='button' data-signin>Enter PIN</button></div>";
     } else if (!brief) {
       const msg = briefState === "loading" ? "Loading…" : briefState === "offline" ? "Offline. Can't load the brief." : "No brief yet";
       el.innerHTML = "<div class='brief empty'><div class='lbl'>☀️ Daily brief</div><h2>" + esc(msg) + "</h2>" +
@@ -303,145 +446,317 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     } else {
       const items = (brief.items || []).map(function (it) {
         const b = it.bot ? botOf(it.bot) : null;
-        return "<li><span class='e'>" + esc(it.emoji || "👉") + "</span><span style='flex:1'>" + esc(it.text) + "</span>" +
-          (b ? "<a href='" + esc(b.chat) + "'>" + esc(b.emoji) + " Open</a>" : "") + "</li>";
+        return "<li><span class='e'>" + esc(it.emoji || "👉") + "</span><span style='flex:1'>" + esc(it.text) + "</span>" + (b ? "<a href='" + esc(b.chat) + "'>" + esc(b.emoji) + " Open</a>" : "") + "</li>";
       }).join("");
       el.innerHTML = "<div class='brief'><div class='lbl'>☀️ " + esc(brief.title || "Daily brief") + (brief.date ? " · " + esc(brief.date) : "") + "</div>" +
         (brief.headline ? "<h2>" + esc(brief.headline) + "</h2>" : "") + (items ? "<ul>" + items + "</ul>" : "") +
         "<p class='foot'>Updated " + esc(fmtWhen(brief.updatedAt)) + (brief.from ? " by " + esc(brief.from) : "") + "</p></div>";
     }
-    el.querySelectorAll("[data-signin]").forEach(function (b) { b.addEventListener("click", openSettings); });
   }
-  function renderStats() {
-    const open = tasks.filter(function (t) { return !t.done; }).length;
-    const jobs = data.bots.reduce(function (n, b) { return n + (b.jobs || []).filter(function (j) { return j.status !== "paused"; }).length; }, 0);
-    document.getElementById("stats").innerHTML =
-      "<button class='stat' data-go='bots' style='color:inherit'><b>" + data.bots.length + "</b><span>Bots</span></button>" +
-      "<button class='stat' data-go='tasks' style='color:inherit'><b>" + (pin ? open : "🔒") + "</b><span>Open tasks</span></button>" +
-      "<button class='stat' data-go='bots' style='color:inherit'><b>" + jobs + "</b><span>Scheduled jobs</span></button>";
-    document.querySelectorAll("#stats [data-go]").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-go")); }); });
+  function renderNeeds() {
+    const el = $("needs");
+    if (!pin) { el.innerHTML = ""; return; }
+    const list = [];
+    C.tasks.items.filter(function (t) { return t.status === "review" || (t.needsRK && t.status !== "done"); }).forEach(function (t) {
+      list.push("<button class='item' data-edit-task='" + esc(t.id) + "'><span class='t'>" + esc(t.text) + "</span><span class='k' style='--c:#f472b6'>" + (t.status === "review" ? "For review" : "Task") + "</span></button>");
+    });
+    WS_ORDER.forEach(function (w) {
+      C[w].items.filter(function (r) { return r.needsRK; }).forEach(function (r) {
+        list.push("<button class='item' data-edit-row='" + w + ":" + esc(r.id) + "'><span class='t'>" + esc(WS[w].emoji + " " + WS[w].title(r)) + "</span><span class='k' style='--c:" + WS[w].color + ";color:#fff'>" + esc(WS[w].name) + "</span></button>");
+      });
+    });
+    el.innerHTML = "<div class='needs'><h3>🙋 Needs you" + (list.length ? " <span class='pill' style='--pc:#f472b6'>" + list.length + "</span>" : "") + "</h3>" +
+      (list.length ? list.slice(0, 12).join("") + (list.length > 12 ? "<p class='note'>+" + (list.length - 12) + " more</p>" : "") : "<p class='none'>Nothing needs you right now. 🎉</p>") + "</div>";
+  }
+  function wsCounts(w) {
+    const rows = C[w].items; const by = {};
+    rows.forEach(function (r) { by[r.status] = (by[r.status] || 0) + 1; });
+    return { n: rows.length, by: by, needs: rows.filter(function (r) { return r.needsRK; }).length };
+  }
+  function wsCardsHtml(big) {
+    return WS_ORDER.map(function (w) {
+      const c = wsCounts(w), cfg = WS[w];
+      const open = w === "ar" ? (c.by["Due"] || 0) + (c.by["In collection"] || 0) + " to collect" :
+        w === "closeout" ? (c.by["Unresolved"] || 0) + (c.by["Incomplete"] || 0) + " open" :
+        w === "members" ? (c.by["Confirmed due"] || 0) + " due" : c.n - (c.by["Approved"] || 0) - (c.by["Closed"] || 0) + " open";
+      return "<button class='wscard" + (big ? " big" : "") + "' style='--c:" + cfg.color + "' data-ws='" + w + "'><span class='e'>" + cfg.emoji + "</span><span class='n'>" + esc(cfg.name) + "</span>" +
+        "<span class='c'>" + (pin ? c.n : "🔒") + "</span><span class='s'>" + (pin ? esc(open) + (c.needs ? " · 🙋 " + c.needs : "") : "Sign in to see") + "</span></button>";
+    }).join("");
+  }
+  function renderHomeWs() { $("home-ws").innerHTML = wsCardsHtml(false); }
+  function actIcon(k) { return { move: "➡️", add: "➕", update: "✏️", "delete": "🗑️", brief: "☀️", bot: "🤖" }[k] || "📝"; }
+  function dayLabel(ts) {
+    const d = new Date(ts); d.setHours(0, 0, 0, 0); const diff = Math.round((today0() - d) / DAY);
+    return diff === 0 ? "Today" : diff === 1 ? "Yesterday" : d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+  }
+  function renderActivity() {
+    const el = $("activity");
+    if (!pin) { el.innerHTML = "<p class='note'>🔒 Sign in to see what got done.</p>"; return; }
+    if (!events.length) { el.innerHTML = "<div class='empty-box'><div class='big'>📭</div><p>Nothing yet. Moves, new rows and bot updates show up here.</p></div>"; return; }
+    let html = "", last = "";
+    events.slice(0, actShown).forEach(function (e) {
+      const day = dayLabel(e.ts);
+      if (day !== last) { html += "<div class='act-day'>" + esc(day) + "</div>"; last = day; }
+      html += "<div class='act'><span class='ic'>" + actIcon(e.kind) + "</span><span class='tx'><b>" + esc(e.by || "RK") + ":</b> " + esc(e.text) + "</span><span class='tm'>" + esc(fmtTime(e.ts)) + "</span></div>";
+    });
+    if (events.length > actShown) html += "<button class='btn-ghost more' id='act-more'>Show more</button>";
+    el.innerHTML = html;
+    const m = $("act-more"); if (m) m.addEventListener("click", function () { actShown += 25; renderActivity(); });
   }
   function renderTiles() {
-    document.getElementById("tiles").innerHTML = data.links.map(function (l) {
+    $("tiles").innerHTML = data.links.map(function (l) {
       return "<a class='tile' style='--c:" + esc(l.color) + "' href='" + esc(safeUrl(l.url)) + "' target='_blank' rel='noopener'><span class='e'>" + esc(l.emoji) + "</span><span class='t'>" + esc(l.name) + "</span></a>";
     }).join("");
   }
 
+  /* ---------- Board ---------- */
+  function lockHtml(what) {
+    return "<div class='lock'><div class='big'>🔒</div><h2>" + esc(what) + "</h2><p>Sign in with the same PIN as your Video Library.</p><button class='btn' data-signin>Enter PIN</button></div>";
+  }
+  function visibleTasks() {
+    const cut = Date.now() - DONE_KEEP;
+    return C.tasks.items.filter(function (t) { return !(t.status === "done" && t.doneAt && t.doneAt < cut); });
+  }
+  function taskMatches(t) {
+    if (boardBot && t.bot !== boardBot) return false;
+    if (boardPri && t.priority !== boardPri) return false;
+    const q = boardQ.trim().toLowerCase();
+    if (q) { const b = botOf(t.bot); if ((t.text + " " + (t.notes || "") + " " + (b ? b.name : "")).toLowerCase().indexOf(q) === -1) return false; }
+    return true;
+  }
+  function stIdx(id) { return STATUSES.findIndex(function (s) { return s.id === id; }); }
+  function taskCard(t) {
+    const s = STATUSES[stIdx(t.status)] || STATUSES[0], i = stIdx(t.status), b = botOf(t.bot);
+    const meta = [];
+    if (t.priority) meta.push("<span class='pill' style='--pc:" + PRI[t.priority].color + "'>" + PRI[t.priority].name + "</span>");
+    if (t.due) { const od = daysOver(t.due); meta.push(t.status !== "done" && od > 0 ? "<span class='pill late'>📅 " + fmtDate(t.due) + " · late</span>" : "<span class='pill soft'>📅 " + fmtDate(t.due) + "</span>"); }
+    meta.push("<span class='pill soft'>" + (b ? esc(b.emoji + " " + b.name) : "🐧 Me / any bot") + "</span>");
+    if (t.needsRK) meta.push("<span class='pill' style='--pc:#f472b6'>🙋 Needs you</span>");
+    const prev = STATUSES[i - 1], next = STATUSES[i + 1];
+    return "<div class='kcard' style='--c:" + s.color + "'><button class='main-tap' data-edit-task='" + esc(t.id) + "'><div class='ttl'>" + esc(t.text) + "</div>" +
+      "<div class='meta'>" + meta.join("") + "</div>" + (t.notes ? "<div class='notes'>" + esc(t.notes) + "</div>" : "") + "</button>" +
+      "<div class='mover'>" + (prev ? "<button data-move='" + esc(t.id) + "' data-to='" + prev.id + "'>◀ " + esc(prev.name) + "</button>" : "<span class='lbl'></span>") +
+      (next ? "<button data-move='" + esc(t.id) + "' data-to='" + next.id + "'>" + esc(next.name) + " ▶</button>" : "<span class='lbl'></span>") + "</button></div></div>";
+  }
+  function renderBoard() {
+    const el = $("board");
+    if (!pin) { el.innerHTML = lockHtml("Your task board"); return; }
+    const keepFocus = document.activeElement && document.activeElement.id === "board-q";
+    const all = visibleTasks(), shown = all.filter(taskMatches);
+    const botsUsed = data.bots.filter(function (b) { return all.some(function (t) { return t.bot === b.id; }); });
+    let html = "<div class='toolbar'><input type='search' id='board-q' placeholder='Search tasks' value='" + esc(boardQ) + "' aria-label='Search tasks'><button class='add-btn' id='new-task'>＋ Task</button></div>" +
+      "<div class='toolbar'><select id='board-bot' aria-label='Filter by bot'><option value=''>All bots</option>" +
+      botsUsed.map(function (b) { return "<option value='" + esc(b.id) + "'" + (boardBot === b.id ? " selected" : "") + ">" + esc(b.emoji + " " + b.name) + "</option>"; }).join("") + "</select>" +
+      "<select id='board-pri' aria-label='Filter by priority'><option value=''>Any priority</option>" +
+      ["high", "med", "low"].map(function (p) { return "<option value='" + p + "'" + (boardPri === p ? " selected" : "") + ">" + PRI[p].name + "</option>"; }).join("") + "</select></div>";
+    const wide = window.innerWidth >= 900;
+    if (wide) {
+      html += "<div class='kcards cols-wide'>" + STATUSES.map(function (s) {
+        const list = shown.filter(function (t) { return t.status === s.id; });
+        return "<div><div class='col-tab' style='--c:" + s.color + ";margin-bottom:10px;display:block'>" + s.name + "<span class='k'>" + list.length + "</span></div><div class='kcards'>" + list.map(taskCard).join("") + "</div></div>";
+      }).join("") + "</div>";
+    } else {
+      html += "<div class='cols'>" + STATUSES.map(function (s) {
+        const n = shown.filter(function (t) { return t.status === s.id; }).length;
+        return "<button class='col-tab' style='--c:" + s.color + "' aria-pressed='" + (boardCol === s.id) + "' data-col='" + s.id + "'>" + s.name + "<span class='k'>" + n + "</span></button>";
+      }).join("") + "</div>";
+      const list = shown.filter(function (t) { return t.status === boardCol; });
+      list.sort(function (a, b) { const pa = { high: 0, med: 1, low: 2 }[a.priority], pb = { high: 0, med: 1, low: 2 }[b.priority];
+        return ((pa == null ? 3 : pa) - (pb == null ? 3 : pb)) || ((a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : 0) || (b.updatedAt - a.updatedAt); });
+      if (boardCol === "done") html += "<p class='col-hint'>Done tasks drop off after 14 days.</p>";
+      html += list.length ? "<div class='kcards'>" + list.map(taskCard).join("") + "</div>" :
+        "<div class='empty-box'><div class='big'>" + (boardCol === "todo" ? "🎉" : "🫙") + "</div><p>Nothing in " + esc(STATUSES[stIdx(boardCol)].name) + (boardQ || boardBot || boardPri ? " that matches" : "") + ".</p></div>";
+    }
+    html += "<p class='sync-line'>" + esc(syncNote || ("Synced " + (fmtWhen(load(LS_SYNCED, 0)) || "—"))) + "</p>";
+    el.innerHTML = html;
+    const q = $("board-q"); q.addEventListener("input", function () { boardQ = q.value; renderBoard(); });
+    if (keepFocus) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+    $("board-bot").addEventListener("change", function (e) { boardBot = e.target.value; renderBoard(); });
+    $("board-pri").addEventListener("change", function (e) { boardPri = e.target.value; renderBoard(); });
+    $("new-task").addEventListener("click", function () { editTask(null); });
+    el.querySelectorAll("[data-col]").forEach(function (b) { b.addEventListener("click", function () { boardCol = b.getAttribute("data-col"); renderBoard(); }); });
+    el.querySelectorAll("[data-move]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const t = C.tasks.items.find(function (x) { return x.id === b.getAttribute("data-move"); }); const to = b.getAttribute("data-to");
+        if (!t || !to) return; setTaskStatus(t, to); persist(C.tasks);
+      });
+    });
+  }
+  function setTaskStatus(t, to) {
+    if (t.status === to) return;
+    t.status = to; t.done = to === "done"; t.doneAt = t.done ? Date.now() : 0; t.updatedAt = Date.now();
+  }
+  function botSelect(id, val) {
+    return "<select id='" + id + "'><option value=''>🐧 Me / any bot</option>" + data.areas.map(function (a) {
+      return "<optgroup label='" + esc(a.name) + "'>" + data.bots.filter(function (b) { return b.area === a.id; }).map(function (b) {
+        return "<option value='" + esc(b.id) + "'" + (val === b.id ? " selected" : "") + ">" + esc(b.emoji + " " + b.name) + "</option>"; }).join("") + "</optgroup>";
+    }).join("") + "</select>";
+  }
+  function deleteButton(onYes) {
+    const b = $("del-btn"); if (!b) return;
+    b.addEventListener("click", function () {
+      if (!b.classList.contains("sure")) { b.classList.add("sure"); b.textContent = "Tap again to delete"; return; }
+      onYes(); closeSheet();
+    });
+  }
+  function editTask(id) {
+    const t = id ? C.tasks.items.find(function (x) { return x.id === id; }) : null;
+    const v = t || { text: "", bot: "", priority: "", due: "", status: tab === "board" && boardCol ? boardCol : "todo", notes: "", needsRK: false };
+    let pri = v.priority || "";
+    openSheet("<h2>" + (t ? "Edit task" : "New task") + "</h2><div class='form-grid'>" +
+      "<div><label for='f-title'>Task</label><input id='f-title' maxlength='300' value='" + esc(v.text) + "' placeholder='What needs doing?'></div>" +
+      "<div><label for='f-bot'>Owner bot</label>" + botSelect("f-bot", v.bot) + "</div>" +
+      "<div><label>Priority</label><div class='seg' id='f-pri'>" + ["high", "med", "low"].map(function (p) {
+        return "<button type='button' style='--pc:" + PRI[p].color + "' data-p='" + p + "' aria-pressed='" + (pri === p) + "'>" + PRI[p].name + "</button>"; }).join("") + "</div></div>" +
+      "<div><label for='f-status'>Column</label><select id='f-status'>" + STATUSES.map(function (s) { return "<option value='" + s.id + "'" + (v.status === s.id ? " selected" : "") + ">" + s.name + "</option>"; }).join("") + "</select></div>" +
+      "<div><label for='f-due'>Due date</label><input id='f-due' type='date' value='" + esc(v.due || "") + "'></div>" +
+      "<div><label for='f-notes'>Notes</label><textarea id='f-notes' maxlength='2000'>" + esc(v.notes || "") + "</textarea></div>" +
+      "<label class='check'><input type='checkbox' id='f-needs'" + (v.needsRK ? " checked" : "") + "> 🙋 Needs me</label>" +
+      "<div class='btn-row'><button class='btn' id='f-save'>" + (t ? "Save" : "Add task") + "</button>" + (t ? "<button class='danger' id='del-btn'>Delete</button>" : "") + "</div><p class='err' id='f-err'></p></div>");
+    $("f-pri").querySelectorAll("[data-p]").forEach(function (b) {
+      b.addEventListener("click", function () { const p = b.getAttribute("data-p"); pri = pri === p ? "" : p; $("f-pri").querySelectorAll("[data-p]").forEach(function (x) { x.setAttribute("aria-pressed", String(x.getAttribute("data-p") === pri)); }); });
+    });
+    $("f-save").addEventListener("click", function () {
+      const title = $("f-title").value.trim(); if (!title) { $("f-err").textContent = "Give the task a name."; return; }
+      const now = Date.now(); const obj = t || { id: uid("t"), createdAt: now, status: "todo", doneAt: 0 };
+      obj.text = title.slice(0, 300); obj.bot = $("f-bot").value; obj.priority = pri; obj.due = $("f-due").value; obj.notes = $("f-notes").value.trim().slice(0, 2000); obj.needsRK = $("f-needs").checked;
+      setTaskStatus(obj, $("f-status").value); obj.updatedAt = now;
+      if (!t) { C.tasks.items.push(normTask(obj)); boardCol = obj.status; }
+      closeSheet(); persist(C.tasks);
+    });
+    deleteButton(function () { C.tasks.items = C.tasks.items.filter(function (x) { return x.id !== id; }); if (C.tasks.tombs.indexOf(id) === -1) C.tasks.tombs.push(id); persist(C.tasks); });
+    if (!t) setTimeout(function () { $("f-title").focus(); }, 60);
+  }
+
+  /* ---------- Workspaces ---------- */
+  function renderWork() {
+    const el = $("work");
+    if (!pin) { el.innerHTML = lockHtml("Your workspaces"); return; }
+    if (!wsOpen) {
+      el.innerHTML = "<p class='col-hint' style='font-size:1rem'>Trackers your bots keep up to date. Tap one to open it.</p><div class='wsgrid'>" + wsCardsHtml(true) + "</div>";
+      return;
+    }
+    const cfg = WS[wsOpen], c = C[wsOpen], counts = wsCounts(wsOpen);
+    const keepFocus = document.activeElement && document.activeElement.id === "ws-q";
+    const q = wsQ.trim().toLowerCase();
+    const shown = c.items.filter(function (r) {
+      if (wsStatus === "__needs") { if (!r.needsRK) return false; }
+      else if (wsStatus && r.status !== wsStatus) return false;
+      if (q) { const hay = cfg.fields.map(function (f) { return Array.isArray(r[f[0]]) ? r[f[0]].join(" ") : r[f[0]]; }).join(" ").toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+      return true;
+    });
+    const closedSt = { Paid: 1, Forgiven: 1, "Do not contact": 1, "Closed out": 1, Completed: 1, Expired: 1, Approved: 1, Closed: 1 };
+    if (wsOpen === "ar") shown.sort(function (a, b) { return ((closedSt[a.status] || 0) - (closedSt[b.status] || 0)) || (a.due || "9999").localeCompare(b.due || "9999"); });
+    else shown.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    let html = "<button class='back' id='ws-back'>◀ Workspaces</button><div class='ws-title'>" + cfg.emoji + " " + esc(cfg.name) + "</div>" +
+      "<div class='toolbar'><input type='search' id='ws-q' placeholder='Search " + esc(cfg.name) + "' value='" + esc(wsQ) + "'><button class='add-btn' id='ws-add'>＋ Add</button></div>" +
+      "<div class='cols'><button class='col-tab' style='--c:#22c7a9' aria-pressed='" + (!wsStatus) + "' data-wss=''>All<span class='k'>" + counts.n + "</span></button>" +
+      (counts.needs ? "<button class='col-tab' style='--c:#f472b6' aria-pressed='" + (wsStatus === "__needs") + "' data-wss='__needs'>🙋 Needs you<span class='k'>" + counts.needs + "</span></button>" : "") +
+      cfg.statuses.map(function (s) { return "<button class='col-tab' style='--c:" + s[1] + "' aria-pressed='" + (wsStatus === s[0]) + "' data-wss='" + esc(s[0]) + "'>" + esc(s[0]) + "<span class='k'>" + (counts.by[s[0]] || 0) + "</span></button>"; }).join("") + "</div>";
+    if (!c.items.length) html += "<div class='empty-box'><div class='big'>" + cfg.emoji + "</div><p>Bots will fill this, or tap ＋ Add.</p><button class='btn' id='ws-add2'>＋ Add " + esc(cfg.noun) + "</button></div>";
+    else if (!shown.length) html += "<div class='empty-box'><div class='big'>🔍</div><p>Nothing here" + (q ? " that matches" : "") + ".</p></div>";
+    else html += "<div class='kcards'>" + shown.map(function (r) {
+      const col = wsColor(wsOpen, r.status), n = cfg.notes(r);
+      return "<div class='kcard' style='--c:" + col + "'><button class='main-tap' data-edit-row='" + wsOpen + ":" + esc(r.id) + "'>" +
+        "<div class='meta' style='margin-top:0'><span class='pill' style='--pc:" + col + "'>" + esc(r.status) + "</span>" + (r.needsRK ? "<span class='pill' style='--pc:#f472b6'>🙋 Needs you</span>" : "") + "</div>" +
+        "<div class='ttl' style='margin-top:8px'>" + esc(cfg.title(r)) + "</div><div class='row-sub'>" + cfg.sub(r) + "</div>" +
+        (r.flags && r.flags.length ? "<div class='flags'>" + r.flags.map(function (f) { return "<span class='pill' style='--pc:#fbbf24'>⚑ " + esc(f) + "</span>"; }).join("") + "</div>" : "") +
+        (n ? "<div class='notes'>" + esc(n) + "</div>" : "") + "</button></div>";
+    }).join("") + "</div>";
+    html += "<p class='sync-line'>" + esc(syncNote || ("Synced " + (fmtWhen(load(LS_SYNCED, 0)) || "—"))) + "</p>";
+    el.innerHTML = html;
+    $("ws-back").addEventListener("click", function () { wsOpen = ""; wsStatus = ""; wsQ = ""; renderWork(); window.scrollTo(0, 0); });
+    const qi = $("ws-q"); qi.addEventListener("input", function () { wsQ = qi.value; renderWork(); });
+    if (keepFocus) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); }
+    $("ws-add").addEventListener("click", function () { editRow(wsOpen, null); });
+    const a2 = $("ws-add2"); if (a2) a2.addEventListener("click", function () { editRow(wsOpen, null); });
+    el.querySelectorAll("[data-wss]").forEach(function (b) { b.addEventListener("click", function () { wsStatus = b.getAttribute("data-wss"); renderWork(); }); });
+  }
+  function editRow(w, id) {
+    const cfg = WS[w], c = C[w];
+    const r = id ? c.items.find(function (x) { return x.id === id; }) : null;
+    const v = r || { status: wsStatus && wsStatus !== "__needs" ? wsStatus : cfg.statuses[0][0], flags: [] };
+    let html = "<h2>" + cfg.emoji + " " + (r ? "Edit " : "Add ") + esc(cfg.noun) + "</h2><div class='form-grid'>" +
+      "<div><label for='f-status'>Status</label><select id='f-status'>" + cfg.statuses.map(function (s) { return "<option" + (v.status === s[0] ? " selected" : "") + ">" + esc(s[0]) + "</option>"; }).join("") + "</select></div>";
+    cfg.fields.forEach(function (f) {
+      const k = f[0], val = v[k];
+      if (f[2] === "long") html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><textarea id='f-" + k + "' maxlength='2000'>" + esc(val || "") + "</textarea></div>";
+      else if (f[2] === "flags") html += "<div><label>" + esc(f[1]) + "</label><div class='seg' id='f-flags'>" + FLAGS.map(function (fl) {
+        return "<button type='button' style='--pc:#fbbf24' data-flag='" + esc(fl) + "' aria-pressed='" + ((val || []).indexOf(fl) !== -1) + "'>" + esc(fl) + "</button>"; }).join("") + "</div></div>";
+      else html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><input id='f-" + k + "' type='" + (f[2] === "number" ? "number' step='0.01' inputmode='decimal" : f[2]) + "' value='" + esc(val == null ? "" : val) + "'></div>";
+    });
+    html += "<label class='check'><input type='checkbox' id='f-needs'" + (v.needsRK ? " checked" : "") + "> 🙋 Needs me</label>" +
+      "<div class='btn-row'><button class='btn' id='f-save'>" + (r ? "Save" : "Add") + "</button>" + (r ? "<button class='danger' id='del-btn'>Delete</button>" : "") + "</div><p class='err' id='f-err'></p></div>";
+    openSheet(html);
+    const fl = $("f-flags");
+    if (fl) fl.querySelectorAll("[data-flag]").forEach(function (b) { b.addEventListener("click", function () { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); }); });
+    $("f-save").addEventListener("click", function () {
+      const now = Date.now(); const obj = r || { id: uid(w + "-"), createdAt: now };
+      obj.status = $("f-status").value; obj.needsRK = $("f-needs").checked;
+      cfg.fields.forEach(function (f) {
+        const k = f[0];
+        if (f[2] === "flags") obj[k] = Array.prototype.filter.call(fl.querySelectorAll("[data-flag]"), function (b) { return b.getAttribute("aria-pressed") === "true"; }).map(function (b) { return b.getAttribute("data-flag"); });
+        else if (f[2] === "number") { const n = parseFloat($("f-" + k).value); obj[k] = isFinite(n) ? n : null; }
+        else obj[k] = $("f-" + k).value.trim();
+      });
+      if (!cfg.title(obj).trim() || cfg.fields.every(function (f) { return !obj[f[0]] || (Array.isArray(obj[f[0]]) && !obj[f[0]].length); })) { $("f-err").textContent = "Fill in at least one field."; return; }
+      obj.updatedAt = now;
+      if (!r) c.items.push(obj);
+      closeSheet(); persist(c);
+    });
+    deleteButton(function () { c.items = c.items.filter(function (x) { return x.id !== id; }); if (c.tombs.indexOf(id) === -1) c.tombs.push(id); persist(c); });
+  }
+
   /* ---------- Bots ---------- */
+  let area = "all", query = "";
   function renderChips() {
     const all = [{ id: "all", name: "All", emoji: "✨", color: "#22c7a9" }].concat(data.areas);
-    document.getElementById("chips").innerHTML = all.map(function (a) {
+    $("chips").innerHTML = all.map(function (a) {
       return "<button class='chip' style='--c:" + esc(a.color) + "' aria-pressed='" + (area === a.id) + "' data-area='" + esc(a.id) + "'>" + esc(a.emoji) + " " + esc(a.name) + "</button>";
     }).join("");
-    document.querySelectorAll("#chips [data-area]").forEach(function (b) {
-      b.addEventListener("click", function () { area = b.getAttribute("data-area"); renderChips(); renderBots(); });
-    });
+    document.querySelectorAll("#chips [data-area]").forEach(function (b) { b.addEventListener("click", function () { area = b.getAttribute("data-area"); renderChips(); renderBots(); }); });
   }
   function botCard(b) {
     const a = areaOf(b.area);
     const jobs = (b.jobs || []).map(function (j) {
       return "<li class='" + (j.status === "paused" ? "paused" : "") + "'>⏰<span><b>" + esc(j.when) + ":</b> " + esc(j.what) + (j.status === "paused" ? "<span class='pz'>Paused</span>" : "") + "</span></li>";
     }).join("");
+    const open = pin ? visibleTasks().filter(function (t) { return t.bot === b.id && t.status !== "done"; }).length : 0;
     return "<article class='bot' style='--c:" + esc(a.color) + "'><div class='top'><div class='av'>" + esc(b.emoji) + "</div><div><h3>" + esc(b.name) + "</h3>" +
-      "<p class='role'>" + esc(b.role) + "</p>" + "</div></div>" +
-      (jobs ? "<ul class='jobs'>" + jobs + "</ul>" : "") +
-      "<a class='open-chat' href='" + esc(safeUrl(b.chat)) + "'>💬 Open chat</a></article>";
+      "<p class='role'>" + esc(b.role) + "</p>" + (open ? "<span class='badge'>✅ " + open + " open task" + (open === 1 ? "" : "s") + "</span>" : "") + "</div></div>" +
+      (jobs ? "<ul class='jobs'>" + jobs + "</ul>" : "") + "<a class='open-chat' href='" + esc(safeUrl(b.chat)) + "'>💬 Open chat</a></article>";
   }
   function renderBots() {
     const q = query.trim().toLowerCase();
     const list = data.bots.filter(function (b) {
       if (area !== "all" && b.area !== area) return false;
       if (!q) return true;
-      const a = areaOf(b.area);
-      return (b.name + " " + b.role + " " + a.name + " " + (b.jobs || []).map(function (j) { return j.what + " " + j.when; }).join(" ")).toLowerCase().indexOf(q) !== -1;
+      return (b.name + " " + b.role + " " + areaOf(b.area).name + " " + (b.jobs || []).map(function (j) { return j.what + " " + j.when; }).join(" ")).toLowerCase().indexOf(q) !== -1;
     });
     const out = data.areas.map(function (a) {
-      const bs = list.filter(function (b) { return b.area === a.id; });
-      if (!bs.length) return "";
+      const bs = list.filter(function (b) { return b.area === a.id; }); if (!bs.length) return "";
       return "<div class='area-h' style='--c:" + esc(a.color) + "'><span class='bar'></span>" + esc(a.emoji) + " " + esc(a.name) + "</div><div class='bots'>" + bs.map(botCard).join("") + "</div>";
     }).join("");
-    document.getElementById("bot-list").innerHTML = out || "<p class='empty'>No bots match. Try another word.</p>";
+    $("bot-list").innerHTML = out || "<p class='empty'>No bots match. Try another word.</p>";
   }
 
-  /* ---------- Tasks ---------- */
-  function uid() { return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-  function botOptions() {
-    return "<option value=''>🐧 Any bot / me</option>" + data.areas.map(function (a) {
-      return "<optgroup label='" + esc(a.name) + "'>" + data.bots.filter(function (b) { return b.area === a.id; }).map(function (b) {
-        return "<option value='" + esc(b.id) + "'>" + esc(b.emoji + " " + b.name) + "</option>";
-      }).join("") + "</optgroup>";
-    }).join("");
-  }
-  function renderTasks() {
-    const el = document.getElementById("tasks");
-    if (!pin) {
-      el.innerHTML = "<div class='lock'><div class='big'>🔒</div><h2>Your task list</h2><p>One list for all your bots. Sign in with the same PIN as your Video Library.</p><button class='btn' data-signin>Enter PIN</button></div>";
-      el.querySelector("[data-signin]").addEventListener("click", openSettings);
-      return;
-    }
-    const sel = document.getElementById("task-bot"); const keepBot = sel ? sel.value : "";
-    const inp = document.getElementById("task-in"); const keepText = inp ? inp.value : "";
-    const open = tasks.filter(function (t) { return !t.done; }), done = tasks.filter(function (t) { return t.done; });
-    let shown = taskFilter === "open" ? open : taskFilter === "done" ? done : tasks.slice();
-    shown.sort(function (x, y) { return (x.done - y.done) || ((y.done ? y.doneAt : y.createdAt) - (x.done ? x.doneAt : x.createdAt)); });
-    el.innerHTML = "<form class='add-task' id='task-form'><input id='task-in' maxlength='300' placeholder='Add a task…' autocomplete='off' aria-label='New task'>" +
-      "<select id='task-bot' aria-label='Which bot'>" + botOptions() + "</select><button class='btn' type='submit'>➕ Add task</button></form>" +
-      "<div class='chips' style='margin-top:14px'>" + [["open", "To do", open.length], ["done", "Done", done.length], ["all", "All", tasks.length]].map(function (f) {
-        return "<button class='chip' aria-pressed='" + (taskFilter === f[0]) + "' data-tf='" + f[0] + "'>" + f[1] + " · " + f[2] + "</button>";
-      }).join("") + "</div>" +
-      (shown.length ? "<ul class='task-list'>" + shown.map(function (t) {
-        const b = t.bot ? botOf(t.bot) : null; const a = b ? areaOf(b.area) : null;
-        return "<li class='task" + (t.done ? " done" : "") + "' style='--c:" + esc(a ? a.color : "#22c7a9") + "'>" +
-          "<button class='tick' data-tick='" + esc(t.id) + "' aria-label='" + (t.done ? "Mark not done" : "Mark done") + "'>" + (t.done ? "✓" : "") + "</button>" +
-          "<div class='body'><div class='txt'>" + esc(t.text) + "</div><div class='who'>" + (b ? esc(b.emoji + " " + b.name) : "🐧 Any bot / me") + "</div></div>" +
-          "<button class='del' data-del='" + esc(t.id) + "' aria-label='Delete'>🗑</button></li>";
-      }).join("") + "</ul>" : "<p class='empty'>" + (taskFilter === "done" ? "Nothing done yet." : "All clear! 🎉") + "</p>") +
-      "<p class='sync-line'>" + esc(syncNote || ("Synced " + (fmtWhen(load(LS_SYNCED, 0)) || "—"))) + "</p>";
-    document.getElementById("task-bot").value = keepBot; document.getElementById("task-in").value = keepText;
-    document.getElementById("task-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const txt = document.getElementById("task-in").value.trim(); if (!txt) return;
-      const now = Date.now();
-      tasks.push({ id: uid(), text: txt.slice(0, 300), bot: document.getElementById("task-bot").value, done: false, createdAt: now, updatedAt: now, doneAt: 0 });
-      document.getElementById("task-in").value = "";
-      if (taskFilter === "done") taskFilter = "open";
-      persist(); renderTasks(); renderStats();
-    });
-    el.querySelectorAll("[data-tf]").forEach(function (b) { b.addEventListener("click", function () { taskFilter = b.getAttribute("data-tf"); renderTasks(); }); });
-    el.querySelectorAll("[data-tick]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        const t = tasks.find(function (x) { return x.id === b.getAttribute("data-tick"); }); if (!t) return;
-        t.done = !t.done; t.doneAt = t.done ? Date.now() : 0; t.updatedAt = Date.now();
-        persist(); renderTasks(); renderStats();
-      });
-    });
-    el.querySelectorAll("[data-del]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        if (!b.classList.contains("sure")) { b.classList.add("sure"); b.textContent = "Delete?"; setTimeout(function () { if (b.isConnected) { b.classList.remove("sure"); b.textContent = "🗑"; } }, 3000); return; }
-        const id = b.getAttribute("data-del");
-        tasks = tasks.filter(function (x) { return x.id !== id; }); if (tombs.indexOf(id) === -1) tombs.push(id);
-        persist(); renderTasks(); renderStats();
-      });
-    });
-  }
-
-  /* ---------- Settings / sign in ---------- */
+  /* ---------- Sheet + settings ---------- */
+  function openSheet(html) { $("sheet-body").innerHTML = html; $("backdrop").hidden = false; $("sheet").hidden = false; $("sheet").scrollTop = 0; }
+  function closeSheet() { $("backdrop").hidden = true; $("sheet").hidden = true; }
   function openSettings() {
-    const body = document.getElementById("sheet-body");
     if (pin) {
-      body.innerHTML = "<h2>Signed in ✅</h2><p>Your tasks and daily brief sync across your devices.</p><p>Last synced: " + esc(fmtWhen(load(LS_SYNCED, 0)) || "never") + "</p>" +
+      openSheet("<h2>Signed in ✅</h2><p>Your board, workspaces, activity and daily brief sync across your devices.</p><p>Last synced: " + esc(fmtWhen(load(LS_SYNCED, 0)) || "never") + "</p>" +
         "<div class='btn-row'><button class='btn' id='sync-now'>🔄 Sync now</button><button class='btn-ghost' id='sign-out'>Sign out</button></div>" +
-        "<p class='err' id='acct-err'>" + esc(syncNote) + "</p><p style='font-size:0.9rem;color:var(--muted)'>Same PIN as your Video Library. To change it, use Video Library → gear → Change PIN.</p>";
+        "<p class='err' id='acct-err'>" + esc(syncNote) + "</p><p style='font-size:0.9rem;color:var(--muted)'>Same PIN as your Video Library. To change it, use Video Library → gear → Change PIN.</p>");
     } else {
-      body.innerHTML = "<h2>Sign in with PIN</h2><p>Use the same PIN as your Video Library. Bots and apps show without it. Tasks and the daily brief need it.</p>" +
+      openSheet("<h2>Sign in with PIN</h2><p>Use the same PIN as your Video Library. Bots and apps show without it. Your board, workspaces and brief need it.</p>" +
         "<div class='field'><label for='pin-in'>PIN</label><input id='pin-in' type='password' inputmode='numeric' autocomplete='current-password' placeholder='Your PIN'></div>" +
-        "<div class='btn-row'><button class='btn' id='pin-go'>Sign in</button></div><p class='err' id='acct-err'>" + esc(syncNote) + "</p>";
+        "<div class='btn-row'><button class='btn' id='pin-go'>Sign in</button></div><p class='err' id='acct-err'>" + esc(syncNote) + "</p>");
     }
-    document.getElementById("backdrop").hidden = false; document.getElementById("sheet").hidden = false;
-    const errEl = function (t) { const e = document.getElementById("acct-err"); if (e) e.textContent = t; };
-    const go = document.getElementById("pin-go");
+    const errEl = function (t) { const e = $("acct-err"); if (e) e.textContent = t; };
+    const go = $("pin-go");
     if (go) {
-      const inp = document.getElementById("pin-in");
+      const inp = $("pin-in");
       const doIt = function () {
         const p = inp.value.trim(); if (!p) { errEl("Type your PIN."); return; }
         go.disabled = true; go.textContent = "Checking…";
@@ -449,12 +764,12 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
           go.disabled = false; go.textContent = "Sign in";
           if (j.ok) {
             pin = p; save(LS_PIN, p); syncNote = "";
-            // Keep anything added on this device before signing in.
+            // Keep anything made on this device before signing in.
             const server = (j.state && j.state.tasks) || [];
-            const extra = tasks.filter(function (t) { return !server.some(function (s) { return s.id === t.id; }); });
-            adopt(j.state || {});
-            if (extra.length) { tasks = tasks.concat(extra); persist(); }
-            briefState = "loading"; closeSheet(); renderAll(); pullBrief(); return;
+            const extra = C.tasks.items.filter(function (t) { return !server.some(function (s) { return s.id === t.id; }); });
+            adopt(C.tasks, j.state || {});
+            if (extra.length) { C.tasks.items = C.tasks.items.concat(extra); persist(C.tasks); }
+            briefState = "loading"; closeSheet(); renderAll(); syncAll(); return;
           }
           if (j.error === "not_setup") { errEl("No PIN set up yet. Set one up in your Video Library app first."); return; }
           errEl((j.message || "Couldn't sign in.") + (j.triesLeft !== undefined ? " " + j.triesLeft + " tries left." : ""));
@@ -464,40 +779,51 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       inp.addEventListener("keydown", function (e) { if (e.key === "Enter") doIt(); });
       setTimeout(function () { inp.focus(); }, 50);
     }
-    const sn = document.getElementById("sync-now");
-    if (sn) sn.addEventListener("click", function () { sn.disabled = true; sn.textContent = "Syncing…"; syncAll().then(function () { openSettings(); }); });
-    const so = document.getElementById("sign-out");
+    const sn = $("sync-now");
+    if (sn) sn.addEventListener("click", function () { sn.disabled = true; sn.textContent = "Syncing…"; syncAll().then(openSettings); });
+    const so = $("sign-out");
     if (so) so.addEventListener("click", function () { signOut(""); closeSheet(); });
   }
-  function closeSheet() { document.getElementById("backdrop").hidden = true; document.getElementById("sheet").hidden = true; }
 
-  /* ---------- Tabs ---------- */
+  /* ---------- Tabs + global clicks ---------- */
   function showTab(name) {
+    tab = name;
     document.querySelectorAll(".tabbar button").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
-    document.getElementById("hdr").textContent = name === "bots" ? "Your bots" : name === "tasks" ? "Tasks" : "HQ";
+    $("hdr").textContent = { home: "HQ", board: "Board", work: "Workspaces", bots: "Your bots" }[name];
     window.scrollTo(0, 0);
-    try { history.replaceState(null, "", "#" + name); } catch (e) {}
+    try { history.replaceState(null, "", "#" + name + (name === "work" && wsOpen ? "/" + wsOpen : "")); } catch (e) {}
   }
   function renderAll() {
-    document.getElementById("gear-dot").classList.toggle("on", !!pin);
-    renderBrief(); renderStats(); renderTasks();
+    $("gear-dot").classList.toggle("on", !!pin);
+    renderBrief(); renderNeeds(); renderHomeWs(); renderActivity(); renderBoard(); renderWork();
+    if (data.bots.length) renderBots();
   }
-
-  document.querySelectorAll(".tabbar button").forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-tab")); }); });
-  document.getElementById("gear").addEventListener("click", openSettings);
-  document.getElementById("sheet-close").addEventListener("click", closeSheet);
-  document.getElementById("backdrop").addEventListener("click", closeSheet);
-  document.getElementById("search").addEventListener("input", function (e) { query = e.target.value; renderBots(); });
+  document.addEventListener("click", function (e) {
+    const s = e.target.closest("[data-signin]"); if (s) { openSettings(); return; }
+    const w = e.target.closest("[data-ws]"); if (w) { wsOpen = w.getAttribute("data-ws"); wsStatus = ""; wsQ = ""; showTab("work"); renderWork(); return; }
+    const t = e.target.closest("[data-edit-task]"); if (t) { editTask(t.getAttribute("data-edit-task")); return; }
+    const r = e.target.closest("[data-edit-row]"); if (r) { const p = r.getAttribute("data-edit-row").split(":"); editRow(p[0], p.slice(1).join(":")); }
+  });
+  document.querySelectorAll(".tabbar button").forEach(function (b) { b.addEventListener("click", function () { if (b.getAttribute("data-tab") === "work" && tab === "work") { wsOpen = ""; renderWork(); } showTab(b.getAttribute("data-tab")); }); });
+  $("gear").addEventListener("click", openSettings);
+  $("sheet-close").addEventListener("click", closeSheet);
+  $("backdrop").addEventListener("click", closeSheet);
+  $("search").addEventListener("input", function (e) { query = e.target.value; renderBots(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) syncAll(); });
+  let wasWide = window.innerWidth >= 900;
+  window.addEventListener("resize", function () { const w = window.innerWidth >= 900; if (w !== wasWide) { wasWide = w; renderBoard(); } });
 
   fetch("./hq.json", { cache: "no-cache" }).then(function (r) { return r.json(); }).then(function (d) {
     data = d;
-    document.getElementById("jobs-note").textContent = "⏰ " + (d.jobsNote || "");
-    renderTiles(); renderChips(); renderBots(); renderAll();
-    const h = (location.hash || "").slice(1); if (["home", "bots", "tasks"].indexOf(h) !== -1) showTab(h);
+    $("jobs-note").textContent = "⏰ " + (d.jobsNote || "");
+    renderTiles(); renderChips(); renderAll();
+    const h = (location.hash || "").slice(1).split("/");
+    if (h[0] === "work" && WS[h[1]]) wsOpen = h[1];
+    if (["home", "board", "work", "bots"].indexOf(h[0]) !== -1) { showTab(h[0]); renderWork(); }
+    if (h[0] === "tasks") showTab("board");
     if (pin) syncAll();
-  }).catch(function () { document.getElementById("bot-list").innerHTML = "<p class='empty'>Couldn't load. Pull down to refresh.</p>"; });
+  }).catch(function () { $("bot-list").innerHTML = "<p class='empty'>Couldn't load. Pull down to refresh.</p>"; });
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function () {});
 })();

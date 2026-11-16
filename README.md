@@ -10,14 +10,15 @@ Open the link in Safari → Share → **Add to Home Screen**. The icon is a peng
 
 ## Tabs
 
-- **Home**: the daily brief (PIN), quick counts, and colorful tiles for apps and tools.
-- **Bots**: every bot grouped by area, with search and area chips. Each card has a role, any known scheduled jobs, and **Open chat** (`grokbot://app/v1/agent?id=<id>`).
-- **Tasks** (PIN): one task list across all bots. Add, tick, delete (tap 🗑 twice), and tag a bot.
+- **Home**: daily brief, **Needs you** (For Review tasks + anything flagged `needsRK`), workspace counts, the **Activity** feed (grouped by day), and app tiles.
+- **Board** (PIN): Kanban with To Do, In Progress, For Review, Done, Future. On a phone you pick a column with the colored tabs and move cards with the ◀ / ▶ buttons; on a wide screen all five columns show. Cards have title, owner bot, priority (High/Med/Low), due date, notes and a "Needs me" flag. Search plus filters by bot and priority. Done cards drop off after 14 days. Old ticked tasks became Done; old open ones became To Do.
+- **Work** (PIN): AR Collections, Job Closeout, Membership Tracker, Permits. Each opens a phone-friendly card list with status tabs, search, ＋ Add and tap-to-edit.
+- **Bots**: every work bot grouped by area, with search and area chips, scheduled jobs, open-task count, and **Open chat**.
 
 ## What's public vs PIN-protected
 
 This page is **public**. `hq.json` holds only bot names, one-line roles, job names/schedules, and app links.
-**Tasks** and the **daily brief** live in the Cloudflare Worker's KV and need RK's PIN, the **same PIN as the Video Library**. Because both apps share the origin `rkem1800-sketch.github.io`, a PIN saved in the Video Library in the same browser signs HQ in too, and signing out signs out both.
+The **board, workspaces, activity feed and daily brief** live in the Cloudflare Worker's KV and need RK's PIN, the **same PIN as the Video Library**. Because both apps share the origin `rkem1800-sketch.github.io`, a PIN saved in the Video Library in the same browser signs HQ in too, and signing out signs out both.
 
 ## Files
 
@@ -56,19 +57,53 @@ Same Worker as the Video Library: `https://video-library-api.rkem1800.workers.de
 
 | Endpoint | Auth | What |
 |---|---|---|
-| `GET /hq/state` | `X-PIN` | `{ok, state: {tasks: [...], deleted: [ids], updatedAt}}` |
-| `PUT /hq/state` | `X-PIN` | Body `{tasks: [...], deleted: [ids]}`. Server merges per task (newest `updatedAt` wins) and keeps deleted ids as tombstones, so two phones don't overwrite each other. |
-| `GET /hq/brief` | `X-PIN` | `{ok, brief: {...} \| null}` |
-| `PUT /hq/brief` (or `POST`) | `Authorization: Bearer <brief token>` | Writes the daily brief. Write-only: the token can't read anything. |
+| `GET /hq/state` | `X-PIN` | Board: `{state: {tasks, deleted, updatedAt}}` |
+| `PUT /hq/state` | `X-PIN` | Body `{tasks, deleted}`. Merged per task (newest `updatedAt` wins), deleted ids kept as tombstones. |
+| `POST /hq/tasks` | write token | Bots upsert tasks: `{by, tasks: [partial task with id], deleted?: [ids], activity?: "text"}` |
+| `GET /hq/ws` | `X-PIN` | Counts for all four workspaces |
+| `GET /hq/ws/<name>` | `X-PIN` | `{state: {rows, deleted, updatedAt}, statuses}`; name = `ar`, `closeout`, `members`, `permits` |
+| `PUT /hq/ws/<name>` | `X-PIN` | Body `{rows, deleted}`, merged like tasks |
+| `POST /hq/ws/<name>` | write token | Bots upsert rows: `{by, rows: [partial row with id], deleted?: [ids], activity?: "text"}` |
+| `GET /hq/activity` | `X-PIN` | `{events: [{id, ts, by, text, kind, ws?}]}`, newest first, max 200 |
+| `POST /hq/activity` | write token | `{by, text, kind?, ws?}` or `{events: [...]}` (max 20 per call) |
+| `GET /hq/brief` | `X-PIN` | `{brief}` |
+| `PUT /hq/brief` | brief or write token | See below |
 
-Task object:
+Every app change (task added, moved, edited, deleted; row added or updated) writes an activity event automatically (up to 5 per save plus a summary). Bot upserts write one summary event, or your `activity` text.
+
+**Tokens** (write-only, can't read anything): `PENGUIN_HQ_WRITE_TOKEN` (all bot writes) and `PENGUIN_HQ_BRIEF_TOKEN` (brief only). Both live only in `~/.penguin-hq.env` on the Grok Bot box (mode 600, loaded by `~/.bashrc`). The Worker stores only their SHA-256 hashes (`HQ_WRITE_TOKEN_HASH`, `HQ_BRIEF_TOKEN_HASH`). To rotate: write a new token in the env file and upload its SHA-256 hex as the matching Worker secret.
+
+### Task object
 
 ```json
-{ "id": "t-abc123", "text": "Call the Lennox rep", "bot": "<agent id or empty>", "done": false,
-  "createdAt": 1763250000000, "updatedAt": 1763250000000, "doneAt": 0 }
+{ "id": "t-abc123", "text": "Call the supply house", "bot": "<agent id or empty>",
+  "status": "todo|doing|review|done|future", "priority": "high|med|low|", "due": "2026-11-20",
+  "notes": "...", "needsRK": false, "createdAt": 0, "updatedAt": 0, "doneAt": 0 }
 ```
 
-Tasks are cached in `localStorage` (`hq.tasks.v1`, `hq.deleted.v1`) and sync about a second after each change, when the app opens, and when it comes back to the foreground.
+### Workspace rows
+
+Every row has `id` (letters, digits, `-_.`, max 64), `status`, `needsRK`, `createdAt`, `updatedAt`. Dates are `YYYY-MM-DD`.
+
+| Workspace | Statuses | Fields |
+|---|---|---|
+| `ar` | Not due, Due, In collection, Paid, Forgiven, Do not contact | `customer, invoice, balance (number), due, lastContact, note, source, sourceId` (days overdue is computed in the app) |
+| `closeout` | Unresolved, Incomplete, Closed out | `job, customer, tech, date, flags (any of: permit, return visit, parts, estimate, rebate, photos), note` |
+| `members` | Active not due, Confirmed due, Scheduled, Completed, Expired | `customer, plan, lastVisit, nextDue, note` |
+| `permits` | Not started, In progress, Submitted, Approved, Closed | `job, customer, address, due, owner, comments` |
+
+Bot upserts are patches: send `id` plus only the fields that changed. Unknown statuses fall back to the first status.
+
+```bash
+set -a; . ~/.penguin-hq.env; set +a
+curl -s -X POST https://video-library-api.rkem1800.workers.dev/hq/ws/ar \
+  -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"by":"Quinn","rows":[{"id":"qbo-123","status":"In collection","lastContact":"2026-11-16","needsRK":true}],"activity":"Quinn: sent 3 reminders"}'
+
+curl -s -X POST https://video-library-api.rkem1800.workers.dev/hq/activity \
+  -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"by":"Quinn","text":"sent 3 reminders","ws":"ar"}'
+```
 
 ### Daily brief
 
@@ -91,9 +126,9 @@ Content-Type: application/json
 }
 ```
 
-Limits: `date` 20 chars, `title` 80, `headline` 300, up to 12 `items` (`text` 300, `emoji` 8, `bot` = agent id, optional; shows an **Open** button to that bot's chat), `from` 60. Needs a `headline` or at least one item. The Worker stamps `updatedAt`. Each PUT replaces the previous brief. Responses: `200 {ok, brief}`, `400 bad_brief`, `401 bad_token`.
+Limits: `date` 20 chars, `title` 80, `headline` 300, up to 12 `items` (`text` 300, `emoji` 8, `bot` = agent id, optional; shows an **Open** button to that bot's chat), `from` 60. Needs a `headline` or at least one item. The Worker stamps `updatedAt`. Each PUT replaces the previous brief. Responses: `200 {ok, brief}`, `400 bad_brief`, `401 bad_token`. Posting a brief also adds a ☀️ activity event.
 
-**Brief token:** the Worker stores only the SHA-256 hash of the token (`HQ_BRIEF_TOKEN_HASH` secret). The token itself lives only on the Grok Bot box in `~/.penguin-hq.env` as `PENGUIN_HQ_BRIEF_TOKEN` (mode 600, loaded by `~/.bashrc`). To rotate: write a new token there, then upload its SHA-256 hex as the Worker secret `HQ_BRIEF_TOKEN_HASH`.
+The brief accepts either `PENGUIN_HQ_BRIEF_TOKEN` or `PENGUIN_HQ_WRITE_TOKEN`.
 
 Example from the box:
 
@@ -111,3 +146,7 @@ python3 -m http.server 8080
 ```
 
 (Sign-in only works on the live site, because the Worker's CORS allows only the GitHub Pages origin.)
+
+## Sync
+
+Board and workspaces are cached in `localStorage` (`hq.tasks.v1`, `hq.ws.<name>.v1`) and sync about a second after each change, when the app opens, and when it comes back to the foreground. Changes made offline sync later.
