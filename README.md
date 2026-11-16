@@ -53,7 +53,12 @@ The **board, workspaces, activity feed and daily brief** live in the Cloudflare 
 
 ## Worker API (Penguin HQ endpoints)
 
-Same Worker as the Video Library: `https://video-library-api.rkem1800.workers.dev` (source: `rkem1800-sketch/video-library` → `worker/worker.js`). CORS allows only `https://rkem1800-sketch.github.io`. Wrong PINs share the Video Library lockout (10 per IP or 50 total → 15-minute lock, HTTP 429).
+Two Workers, same PIN (same salt + SHA-256 scheme), same write token:
+
+- **Follow-ups** (`/hq/ws/followups`, `/hq/followups/run`, `/hq/followups/status`, plus a Follow-ups-only `/hq/activity` and `/hq/ws` count): Penguin-owned Worker **`https://penguin-hq-api.rkem1800.workers.dev`** (source: this repo → `worker/worker.js`, own KV namespace `penguin-hq-api`). The app merges its activity into the Home feed.
+- **Everything else** (board, AR, closeout, members, permits, activity, brief): `https://video-library-api.rkem1800.workers.dev` (source: `rkem1800-sketch/video-library` → `worker/worker.js`).
+
+penguin-hq-api has its own wrong-PIN lockout (same rules). CORS allows only `https://rkem1800-sketch.github.io`. Wrong PINs share the Video Library lockout (10 per IP or 50 total → 15-minute lock, HTTP 429).
 
 | Endpoint | Auth | What |
 |---|---|---|
@@ -64,9 +69,9 @@ Same Worker as the Video Library: `https://video-library-api.rkem1800.workers.de
 | `GET /hq/ws/<name>` | `X-PIN` | `{state: {rows, deleted, updatedAt}, statuses}`; name = `followups`, `ar`, `closeout`, `members`, `permits` |
 | `PUT /hq/ws/<name>` | `X-PIN` | Body `{rows, deleted}`, merged like tasks |
 | `POST /hq/ws/<name>` | write token | Bots upsert rows: `{by, rows: [partial row with id], deleted?: [ids], activity?: "text"}` |
-| `POST /hq/followups/run` | `X-PIN` | "Run update": Worker POSTs `{"source":"penguin-hq","action":"sweep","requestedAt":ISO}` to secret `FRONTDESK_SWEEP_WEBHOOK_URL` (with `Authorization: Bearer <FRONTDESK_SWEEP_WEBHOOK_KEY>` if that secret is set). Max once per 2 minutes (429 `too_soon`). 503 `not_connected` "Sweep not connected yet" if the URL secret isn't set. |
-| `GET /hq/followups/status` | `X-PIN` | `{connected, lastRunRequested, lastSweepFinished: {at, by, summary}}` |
-| `POST /hq/followups/status` | write token | Bot reports a finished sweep: `{"by":"Front Desk","finishedAt":ISO,"summary":"..."}` |
+| `POST /hq/followups/run` (penguin-hq-api) | `X-PIN` | "Run update": Worker POSTs `{"source":"penguin-hq","action":"sweep","requestedAt":ISO}` to secret `FRONTDESK_SWEEP_WEBHOOK_URL` with `Authorization: Bearer <FRONTDESK_SWEEP_WEBHOOK_KEY>`. Max once per 5 minutes (429 `too_soon`; a failed webhook call doesn't start the wait). 503 `not_configured` if the URL or key secret isn't set. |
+| `GET /hq/followups/status` (penguin-hq-api) | `X-PIN` | `{connected, lastRunRequested, lastSweepFinished: {at, by, summary}}` |
+| `POST /hq/followups/status` (penguin-hq-api) | write token | Bot reports a finished sweep: `{"by":"Front Desk","finishedAt":ISO,"summary":"..."}` |
 | `GET /hq/activity` | `X-PIN` | `{events: [{id, ts, by, text, kind, ws?}]}`, newest first, max 200 |
 | `POST /hq/activity` | write token | `{by, text, kind?, ws?}` or `{events: [...]}` (max 20 per call) |
 | `GET /hq/brief` | `X-PIN` | `{brief}` |
@@ -111,22 +116,22 @@ curl -s -X POST https://video-library-api.rkem1800.workers.dev/hq/activity \
 
 ### Follow-ups (Front Desk bot)
 
-Row ids: `fu-<slug>` or `fu-<channel>-<sourceId>` (e.g. `fu-st-chat-12345`). Channel is one of: ST Chat, ST Lead, ST Booking, Missed call, Signpost, Google LSA, Voicemail, Web form, Email. Open = Waiting, Urgent or Contacted (Booked, Handled and Do not contact are closed). `called`/`booked`/`chatted` are three-state strings: true/1/"Yes" → "yes", false/0 → "no", anything else → "" (not checked yet). On the card each is a big chip (✅ yes, ❌ no, ⬜ blank); a tap cycles blank → yes → no → blank and saves. The app sorts urgent first (urgency `urgent` or status Urgent), then oldest `contactedAt`. RK's big Done box sets status Handled. Home → Needs you shows the open count and lists the urgent ones.
+Row ids: `fu-<slug>` or `fu-<channel>-<sourceId>` (e.g. `fu-st-chat-12345`). Channel is one of: ST Chat, ST Lead, ST Booking, Missed call, Signpost, Google LSA, Voicemail, Web form, Email. Open = Waiting, Urgent or Contacted (Booked, Handled and Do not contact are closed). Follow-ups rows go to **penguin-hq-api**, not video-library-api. When `booked` turns yes on an open row (Waiting/Urgent/Contacted), the Worker moves it to **Booked** (handled) automatically. `called`/`booked`/`chatted` are three-state strings: true/1/"Yes" → "yes", false/0 → "no", anything else → "" (not checked yet). On the card each is a big chip (✅ yes, ❌ no, ⬜ blank); a tap cycles blank → yes → no → blank and saves. The app sorts urgent first (urgency `urgent` or status Urgent), then oldest `contactedAt`. RK's big Done box sets status Handled. Home → Needs you shows the open count and lists the urgent ones.
 
 A bot upsert never undoes RK: if a row is already Booked, Handled or Do not contact, the posted status is ignored unless the row has `"reopen": true`.
 
 ```bash
-curl -s -X POST https://video-library-api.rkem1800.workers.dev/hq/ws/followups \
+curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/ws/followups \
   -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
   -d '{"by":"Front Desk","rows":[{"id":"fu-st-chat-12345","customer":"Sample Customer","phone":"555-0100","channel":"ST Chat","contactedAt":"2026-11-16 07:12","want":"No heat upstairs","urgency":"urgent","called":"yes","booked":"no","chatted":"","status":"Waiting","source":"ServiceTitan","sourceId":"12345","lastSeen":"2026-11-16","needsRK":false}],"activity":"Front Desk: sweep found 1 new contact"}'
 
 # when a sweep finishes
-curl -s -X POST https://video-library-api.rkem1800.workers.dev/hq/followups/status \
+curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/status \
   -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
   -d '{"by":"Front Desk","finishedAt":"2026-11-16T12:05:00Z","summary":"Checked 9 channels, 2 new, 1 urgent"}'
 ```
 
-**Run update wiring:** set the Worker secrets `FRONTDESK_SWEEP_WEBHOOK_URL` (the Front Desk routine's webhook URL) and optionally `FRONTDESK_SWEEP_WEBHOOK_KEY` (sent as `Authorization: Bearer <key>`, same as the Video Library `/add` webhook) in the Cloudflare dashboard (Workers → video-library-api → Settings → Variables and Secrets). Never put them in this repo. Deploys use `keep_bindings: ["secret_text"]`, so dashboard secrets survive redeploys.
+**Run update wiring:** Worker secrets on **penguin-hq-api**: `FRONTDESK_SWEEP_WEBHOOK_URL` (Front Desk "Follow-up sweep (Run now)" routine webhook) and `FRONTDESK_SWEEP_WEBHOOK_KEY` (sent as `Authorization: Bearer <key>`). Other secrets: `PIN_SALT`, `PIN_HASH` (copied from the Video Library config, so the same PIN works), `HQ_WRITE_TOKEN_HASH`. Never put values in this repo. Deploys use `keep_bindings: ["secret_text"]`, so secrets survive redeploys. Deploy helper: `/workspace/penguin-hq-api/build.mjs` on the Grok Bot box (Cloudflare MCP).
 
 ### Daily brief
 

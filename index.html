@@ -310,6 +310,8 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 (function () {
   "use strict";
   const API = "https://video-library-api.rkem1800.workers.dev";
+  // Follow-ups (rows, Run update, sweep status) live on their own Penguin Worker. Same PIN.
+  const FU_API = "https://penguin-hq-api.rkem1800.workers.dev";
   // Same PIN as the Video Library. Same site, so a PIN saved there signs you in here too.
   const LS_PIN = "videoLib.pin.v1", LS_SYNCED = "hq.syncedAt.v1", LS_BRIEF = "hq.brief.v1", LS_ACT = "hq.activity.v1";
   const DAY = 86400000, DONE_KEEP = 14 * DAY;
@@ -393,7 +395,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   let syncNote = "", tab = "home", briefState = pin ? "loading" : "locked";
   let boardCol = "todo", boardQ = "", boardBot = "", boardPri = "", wsOpen = "", wsStatus = "", wsQ = "", actShown = 15;
   function makeColl(name, path, list, lsItems, lsTombs) {
-    return { name: name, path: path, list: list, lsI: lsItems, lsT: lsTombs, items: load(lsItems, []), tombs: load(lsTombs, []), dirty: load(lsItems + ".dirty", false), timer: null };
+    return { name: name, path: path, base: name === "followups" ? FU_API : API, list: list, lsI: lsItems, lsT: lsTombs, items: load(lsItems, []), tombs: load(lsTombs, []), dirty: load(lsItems + ".dirty", false), timer: null };
   }
   // Tasks keep their old localStorage keys so tasks made before the board carry over.
   const C = { tasks: makeColl("tasks", "/hq/state", "tasks", "hq.tasks.v1", "hq.deleted.v1") };
@@ -414,7 +416,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     const headers = { "Content-Type": "application/json" };
     const p = opts.pin !== undefined ? opts.pin : pin;
     if (p) headers["X-PIN"] = p;
-    return fetch(API + path, { method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" })
+    return fetch((opts.base || API) + path, { method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; }); });
   }
   function signOut(reason) { pin = ""; try { localStorage.removeItem(LS_PIN); } catch (e) {} syncNote = reason || ""; briefState = "locked"; renderAll(); }
@@ -434,7 +436,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     c.timer = null;
     if (!pin) return Promise.resolve();
     const body = { deleted: c.tombs }; body[c.list] = c.items;
-    return api(c.path, { method: "PUT", body: body }).then(function (j) {
+    return api(c.path, { method: "PUT", body: body, base: c.base }).then(function (j) {
       if (j.ok && j.state) { adopt(c, j.state); syncNote = ""; pullActivity(); }
       else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
       else syncNote = j.message || ("Sync failed (HTTP " + j.httpStatus + ").");
@@ -444,7 +446,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   function pull(c) {
     if (!pin) return Promise.resolve();
     if (c.dirty) return push(c); // the server merges by item, so a push also brings back other devices' changes
-    return api(c.path).then(function (j) {
+    return api(c.path, { base: c.base }).then(function (j) {
       if (j.ok && j.state) { adopt(c, j.state); syncNote = ""; }
       else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
       else if (j.message) syncNote = j.message;
@@ -464,7 +466,12 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     if (actTimer) clearTimeout(actTimer);
     return new Promise(function (res) {
       actTimer = setTimeout(function () {
-        api("/hq/activity").then(function (j) { if (j.ok) { events = j.events || []; save(LS_ACT, events); renderActivity(); } }).catch(function () {}).then(res);
+        // HQ feed + Follow-ups feed, merged newest first.
+        Promise.all([api("/hq/activity").catch(function () { return {}; }), api("/hq/activity", { base: FU_API }).catch(function () { return {}; })]).then(function (rs) {
+          if (!rs[0].ok && !rs[1].ok) return;
+          const seen = {}; events = [].concat(rs[0].ok ? rs[0].events || [] : [], rs[1].ok ? rs[1].events || [] : []).filter(function (e) { if (!e || seen[e.id]) return false; seen[e.id] = 1; return true; }).sort(function (a, b) { return b.ts - a.ts; }).slice(0, 200);
+          save(LS_ACT, events); renderActivity();
+        }).catch(function () {}).then(res);
       }, 300);
     });
   }
@@ -750,7 +757,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   function loadSweep() {
     if (!pin) return Promise.resolve();
     sweep.loadedAt = Date.now();
-    return api("/hq/followups/status").then(function (j) {
+    return api("/hq/followups/status", { base: FU_API }).then(function (j) {
       if (j.ok) { sweep.connected = j.connected; sweep.lastRunRequested = j.lastRunRequested; sweep.lastSweepFinished = j.lastSweepFinished; }
       if (wsOpen === "followups") renderWork();
     }).catch(function () {});
@@ -767,10 +774,10 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   function runSweep() {
     if (sweep.busy) return;
     sweep.busy = true; sweep.msg = ""; renderWork();
-    api("/hq/followups/run", { method: "POST", body: {} }).then(function (j) {
+    api("/hq/followups/run", { method: "POST", body: {}, base: FU_API }).then(function (j) {
       sweep.busy = false;
       if (j.ok) { sweep.msg = "Sweep started… The Front Desk bot will update this list."; sweep.lastRunRequested = j.lastRunRequested; pullActivity(); }
-      else if (j.error === "not_connected") { sweep.connected = false; sweep.msg = "Sweep not connected yet."; }
+      else if (j.error === "not_connected" || j.error === "not_configured") { sweep.connected = false; sweep.msg = "Sweep not connected yet."; }
       else if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
       else { sweep.msg = j.message || ("Couldn't start the sweep (HTTP " + j.httpStatus + ")."); if (j.lastRunRequested) sweep.lastRunRequested = j.lastRunRequested; }
       renderWork();
