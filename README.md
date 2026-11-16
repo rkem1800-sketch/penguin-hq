@@ -69,9 +69,9 @@ penguin-hq-api has its own wrong-PIN lockout (same rules). CORS allows only `htt
 | `GET /hq/ws/<name>` | `X-PIN` | `{state: {rows, deleted, updatedAt}, statuses}`; name = `followups`, `ar`, `closeout`, `members`, `permits` |
 | `PUT /hq/ws/<name>` | `X-PIN` | Body `{rows, deleted}`, merged like tasks |
 | `POST /hq/ws/<name>` | write token | Bots upsert rows: `{by, rows: [partial row with id], deleted?: [ids], activity?: "text"}` |
-| `POST /hq/followups/run` (penguin-hq-api) | `X-PIN` | "Run update": Worker POSTs `{"source":"penguin-hq","action":"sweep","requestedAt":ISO}` to secret `FRONTDESK_SWEEP_WEBHOOK_URL` with `Authorization: Bearer <FRONTDESK_SWEEP_WEBHOOK_KEY>`. Max once per 5 minutes (429 `too_soon`; a failed webhook call doesn't start the wait). 503 `not_configured` if the URL or key secret isn't set. |
-| `GET /hq/followups/status` (penguin-hq-api) | `X-PIN` | `{connected, lastRunRequested, lastSweepFinished: {at, by, summary}}` |
-| `POST /hq/followups/status` (penguin-hq-api) | write token | Bot reports a finished sweep: `{"by":"Front Desk","finishedAt":ISO,"summary":"..."}` |
+| `POST /hq/followups/run` (penguin-hq-api) | `X-PIN` (start); write token (409 check only) | "Run update": if a sweep is already running (and started less than 30 minutes ago), returns **409** `{error:"running", running:true, startedAt}` and does **not** fire the webhook. Otherwise the Worker POSTs `{"source":"penguin-hq","action":"sweep","requestedAt":ISO}` to secret `FRONTDESK_SWEEP_WEBHOOK_URL` with `Authorization: Bearer <FRONTDESK_SWEEP_WEBHOOK_KEY>`, saves `running={startedAt, by}` in KV, and returns `{running:true, startedAt, lastRunRequested}`. Max once per 5 minutes (429 `too_soon`; a failed webhook call doesn't start the wait and clears `running`). 503 `not_configured` if the URL or key secret isn't set. A write-token POST never starts a sweep: 409 if one is running, otherwise 401. |
+| `GET /hq/followups/status` (penguin-hq-api) | `X-PIN`, or write token, or Front Desk read token | `{connected, lastRunRequested, lastSweepFinished: {at, by, summary}, running, startedAt}`. `running` is true only when a sweep started less than 30 minutes ago; a stale flag is ignored. |
+| `POST /hq/followups/status` (penguin-hq-api) | write token | Start (scheduled sweeps): `{"by":"Front Desk","startedAt":ISO,"running":true}` sets the running flag and `lastRunRequested` (does not change `lastSweepFinished`). Finish: `{"by":"Front Desk","finishedAt":ISO,"summary":"..."}` clears `running`, stores `lastSweepFinished`, and writes an activity event. Skipped: `{"by":"Front Desk","status":"skipped"}` clears `running` only. |
 | `GET /hq/activity` | `X-PIN` | `{events: [{id, ts, by, text, kind, ws?}]}`, newest first, max 200 |
 | `POST /hq/activity` | write token | `{by, text, kind?, ws?}` or `{events: [...]}` (max 20 per call) |
 | `GET /hq/brief` | `X-PIN` | `{brief}` |
@@ -125,10 +125,20 @@ curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/ws/followups \
   -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
   -d '{"by":"Front Desk","rows":[{"id":"fu-st-chat-12345","customer":"Sample Customer","phone":"555-0100","channel":"ST Chat","contactedAt":"2026-11-16 07:12","want":"No heat upstairs","urgency":"urgent","called":"yes","booked":"no","chatted":"","status":"Waiting","source":"ServiceTitan","sourceId":"12345","lastSeen":"2026-11-16","needsRK":false}],"activity":"Front Desk: sweep found 1 new contact"}'
 
-# when a sweep finishes
+# when a scheduled sweep (7 AM / noon / 4 PM ET) starts — also clears the Run update button
 curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/status \
   -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
-  -d '{"by":"Front Desk","finishedAt":"2026-11-16T12:05:00Z","summary":"Checked 9 channels, 2 new, 1 urgent"}'
+  -d '{"by":"Front Desk","startedAt":"2026-11-16T17:00:00.000Z","running":true}'
+
+# when a sweep finishes (clears the running flag)
+curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/status \
+  -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"by":"Front Desk","finishedAt":"2026-11-16T17:20:00.000Z","summary":"Checked 9 channels, 2 new, 1 urgent"}'
+
+# if a scheduled sweep exits without running (clears running, leaves last summary alone)
+curl -s -X POST https://penguin-hq-api.rkem1800.workers.dev/hq/followups/status \
+  -H "Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"by":"Front Desk","status":"skipped"}'
 ```
 
 ### Follow-ups action buttons and Front Desk requests (penguin-hq-api)

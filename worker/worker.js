@@ -7,7 +7,7 @@
 //   FRONTDESK_SWEEP_WEBHOOK_URL, FRONTDESK_SWEEP_WEBHOOK_KEY   Front Desk "Follow-up sweep (Run now)" routine webhook
 const ORIGIN = "https://rkem1800-sketch.github.io";
 const MAX_FAILS = 10, GLOBAL_MAX_FAILS = 50, LOCK_SECONDS = 900;
-const RUN_EVERY_MS = 5 * 60000;
+const RUN_EVERY_MS = 5 * 60000, RUN_STALE_MS = 30 * 60000;
 const MAX_ROWS = 2000, MAX_TOMBS = 2000, MAX_EVENTS = 200;
 const KEY_ROWS = "hq:ws:followups", KEY_SWEEP = "hq:fu:sweep", KEY_ACT = "hq:activity", KEY_REQ = "hq:fu:requests";
 const REQ_PER_HOUR = 20, MAX_REQS = 300;
@@ -157,6 +157,14 @@ async function writeRows(env, body, mode, by) {
   return { st, added, changed, removed };
 }
 
+function activeRunning(meta) {
+  const r = meta && meta.running;
+  if (!r || !r.startedAt) return null;
+  const t = Date.parse(r.startedAt);
+  if (!isFinite(t) || Date.now() - t > RUN_STALE_MS) return null;
+  return r;
+}
+function runningFields(meta) { const r = activeRunning(meta); return { running: !!r, startedAt: r ? r.startedAt : null }; }
 function webhookKey(env) { return String(env.FRONTDESK_SWEEP_WEBHOOK_KEY || "").trim().replace(/^authorization:\s*/i, "").replace(/^bearer\s+/i, ""); }
 function connected(env) { return !!(String(env.FRONTDESK_SWEEP_WEBHOOK_URL || "").trim() && webhookKey(env)); }
 // One helper for every call to the Front Desk routine webhook. Payloads carry ids only, never customer data.
@@ -189,24 +197,28 @@ async function createRequest(req, env, body, by) {
   return json(req, 200, { ok: true, webhookStatus: w.status, request: q });
 }
 
-async function runSweep(req, env, by) {
+async function runSweep(req, env, by, opts) {
   if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "Run update isn't connected yet.", connected: false });
   const meta = (await env.KV.get(KEY_SWEEP, "json")) || {};
+  const active = activeRunning(meta);
+  if (active) return json(req, 409, { ok: false, error: "running", running: true, startedAt: active.startedAt, lastRunRequested: meta.lastRunRequested || null, lastSweepFinished: meta.lastSweepFinished || null, message: "A sweep is already running." });
+  if (opts && opts.start === false) return json(req, 401, { ok: false, error: "pin_required", message: "Sign in with your PIN to start a sweep." });
   const prev = meta.lastRunRequested || null;
   const last = prev ? Date.parse(prev) : 0;
   const wait = Math.ceil((last + RUN_EVERY_MS - Date.now()) / 1000);
-  if (wait > 0) return json(req, 429, { ok: false, error: "too_soon", message: "An update just started. Try again in " + (wait > 60 ? Math.ceil(wait / 60) + " minutes." : wait + " seconds."), retryAfter: wait, lastRunRequested: prev });
+  if (wait > 0) return json(req, 429, { ok: false, error: "too_soon", message: "An update just started. Try again in " + (wait > 60 ? Math.ceil(wait / 60) + " minutes." : wait + " seconds."), retryAfter: wait, lastRunRequested: prev, running: false, startedAt: null });
   const requestedAt = new Date().toISOString();
   meta.lastRunRequested = requestedAt;
+  meta.running = { startedAt: requestedAt, by: str(by, 60) || "RK" };
   await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
   const resp = await callFrontDesk(env, { action: "sweep", requestedAt });
-  if (!resp.ok) { // failed: don't hold RK to the 5-minute wait
-    meta.lastRunRequested = prev; await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
-    if (!resp.status) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev });
-    return json(req, 502, { ok: false, webhookStatus: resp.status, lastRunRequested: prev, message: "The Front Desk bot didn't accept the request (HTTP " + resp.status + ")." });
+  if (!resp.ok) { // failed: don't hold RK to the 5-minute wait, and don't leave the running flag on
+    meta.lastRunRequested = prev; delete meta.running; await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
+    if (!resp.status) return json(req, 502, { ok: false, error: "webhook_unreachable", message: "Couldn't reach the Front Desk bot.", lastRunRequested: prev, running: false, startedAt: null });
+    return json(req, 502, { ok: false, webhookStatus: resp.status, lastRunRequested: prev, running: false, startedAt: null, message: "The Front Desk bot didn't accept the request (HTTP " + resp.status + ")." });
   }
   await addEvents(env, [ev(by, "Started a follow-up sweep", "bot")]);
-  return json(req, 200, { ok: true, webhookStatus: resp.status, lastRunRequested: requestedAt, message: "Sweep started" });
+  return json(req, 200, { ok: true, webhookStatus: resp.status, lastRunRequested: requestedAt, running: true, startedAt: requestedAt, message: "Sweep started" });
 }
 
 export default {
@@ -253,20 +265,44 @@ export default {
       if (req.method === "POST") {
         if (!(await tokenOk(req, env))) return json(req, 401, { ok: false, error: "bad_token" });
         const body = await readJson(req) || {};
+        const skipped = str(body.status, 20).toLowerCase() === "skipped";
+        const hasFinish = !!str(body.finishedAt, 40);
+        if (body.running === true && !hasFinish && !skipped) {
+          const t0 = Date.parse(body.startedAt || "");
+          const startedAt = isFinite(t0) ? new Date(t0).toISOString() : new Date().toISOString();
+          meta.running = { startedAt, by: str(body.by, 60) || "Front Desk" };
+          meta.lastRunRequested = startedAt;
+          await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
+          return json(req, 200, Object.assign({ ok: true, connected: connected(env), lastRunRequested: meta.lastRunRequested, lastSweepFinished: meta.lastSweepFinished || null }, runningFields(meta)));
+        }
+        delete meta.running;
+        if (skipped && !hasFinish) {
+          await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
+          return json(req, 200, Object.assign({ ok: true, connected: connected(env), skipped: true, lastRunRequested: meta.lastRunRequested || null, lastSweepFinished: meta.lastSweepFinished || null }, runningFields(meta)));
+        }
         const t = Date.parse(body.finishedAt || "");
         meta.lastSweepFinished = { at: isFinite(t) ? new Date(t).toISOString() : new Date().toISOString(), by: str(body.by, 60) || "Front Desk", summary: str(body.summary, 300) };
         await env.KV.put(KEY_SWEEP, JSON.stringify(meta));
         await addEvents(env, [ev(meta.lastSweepFinished.by, "Finished a follow-up sweep" + (meta.lastSweepFinished.summary ? ": " + meta.lastSweepFinished.summary : ""), "bot")]);
-        return json(req, 200, { ok: true, connected: connected(env), lastSweepFinished: meta.lastSweepFinished });
+        return json(req, 200, Object.assign({ ok: true, connected: connected(env), lastSweepFinished: meta.lastSweepFinished, lastRunRequested: meta.lastRunRequested || null }, runningFields(meta)));
       }
       if (req.method !== "GET") return json(req, 405, { ok: false, error: "method" });
-      const bad = await checkPin(req, env); if (bad) return bad;
-      return json(req, 200, { ok: true, connected: connected(env), lastRunRequested: meta.lastRunRequested || null, lastSweepFinished: meta.lastSweepFinished || null });
+      if (req.headers.get("Authorization")) {
+        if (!(await tokenOk(req, env)) && !(await tokenOk(req, env, "HQ_FRONTDESK_READ_TOKEN_HASH"))) return json(req, 401, { ok: false, error: "bad_token" });
+      } else {
+        const bad = await checkPin(req, env); if (bad) return bad;
+      }
+      return json(req, 200, Object.assign({ ok: true, connected: connected(env), lastRunRequested: meta.lastRunRequested || null, lastSweepFinished: meta.lastSweepFinished || null }, runningFields(meta)));
     }
 
     // "Run update": RK (PIN) -> Worker POSTs the Front Desk routine webhook. URL/key live only in Worker secrets.
     if (path === "/hq/followups/run") {
       if (req.method !== "POST") return json(req, 405, { ok: false, error: "method" });
+      // Write token may only observe a 409 (already running). Starting a sweep still needs the PIN, so we never fire the webhook from a token call.
+      if (req.headers.get("Authorization")) {
+        if (!(await tokenOk(req, env))) return json(req, 401, { ok: false, error: "bad_token" });
+        return runSweep(req, env, "Bot", { start: false });
+      }
       const bad = await checkPin(req, env); if (bad) return bad;
       return runSweep(req, env, "RK");
     }

@@ -229,7 +229,9 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .wscard.wide { grid-column: 1 / -1; min-height: 110px; }
 .sweep { background: linear-gradient(150deg, rgba(14,165,233,0.25), var(--elev) 70%); border: 1px solid rgba(14,165,233,0.45); border-radius: 20px; padding: 14px; margin: 0 0 12px; }
 .run-btn { width: 100%; border: 0; border-radius: 16px; padding: 18px; font-size: 1.25rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #0ea5e9, #22c7a9); box-shadow: 0 10px 26px rgba(14,165,233,0.35); }
-.run-btn:disabled { background: var(--elev-2); color: var(--muted); box-shadow: none; }
+.run-btn:disabled { background: var(--elev-2); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+.run-spin { display: inline-block; width: 1.15em; height: 1.15em; margin-right: 0.5em; border: 3px solid rgba(148,163,184,0.35); border-top-color: currentColor; border-radius: 50%; animation: hqspin 0.8s linear infinite; vertical-align: -0.2em; }
+@keyframes hqspin { to { transform: rotate(360deg); } }
 .sweep-msg { margin: 10px 2px 0; font-weight: 700; color: #7dd3fc; }
 .sweep-times { margin: 10px 2px 0; color: var(--soft); font-size: 0.92rem; line-height: 1.5; }
 .fu-row { display: flex; gap: 12px; align-items: flex-start; }
@@ -381,6 +383,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     return d.toLocaleDateString([], { month: "short", day: "numeric" }) + (m[4] ? ", " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "") + " ET";
   }
   function fmtIsoET(iso) { if (!iso) return "never"; try { return new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return iso; } }
+  function fmtClockET(iso) { if (!iso) return ""; try { return new Date(iso).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
   WS.followups = { name: "Follow-ups", emoji: "📞", color: "#0ea5e9", noun: "follow-up", idPrefix: "fu-rk-",
     statuses: [["Waiting", "#38bdf8"], ["Urgent", "#ef4444"], ["Contacted", "#fbbf24"], ["Booked", "#a78bfa"], ["Handled", "#4ade80"], ["Do not contact", "#94a3b8"]],
     fields: [["customer", "Customer", "text"], ["phone", "Phone", "tel"], ["email", "Email", "email"], ["channel", "Channel", "select", FU_CHANNELS],
@@ -766,7 +769,9 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     if (wsOpen === "followups" && !sweep.loadedAt) loadSweep();
   }
   /* ---------- Follow-ups ---------- */
-  let sweep = { connected: null, lastRunRequested: null, lastSweepFinished: null, msg: "", busy: false, loadedAt: 0 };
+  let sweep = { connected: null, lastRunRequested: null, lastSweepFinished: null, running: false, startedAt: null, msg: "", busy: false, loadedAt: 0 };
+  let sweepTimer = null;
+  const SWEEP_STALE_MS = 30 * 60 * 1000;
   /* Requests to the Front Desk bot: latest one per row */
   const REQ_KINDS = { reply: ["✍️", "Draft a reply", "Anything to add? e.g. offer Thu AM, mention the warranty"], schedule: ["📅", "Schedule", "Any time to offer? e.g. Thu AM, after 3"], check: ["🔎", "Check their file", "What should it look for? e.g. did we quote a heat pump?"], ask: ["💬", "Ask bot…", "Type your question or what you want done"] };
   const REQ_STATUS = { queued: "⏳ Sent to Front Desk", working: "⚙️ Front Desk is on it", needs_rk: "🙋 Needs you", done: "✅ Done", failed: "⚠️ Didn't work" };
@@ -810,31 +815,65 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       closeSheet(); persist(C.followups);
     });
   }
+  function isSweepRunning() {
+    if (!sweep.running || !sweep.startedAt) return false;
+    const t = Date.parse(sweep.startedAt);
+    return isFinite(t) && (Date.now() - t) < SWEEP_STALE_MS;
+  }
+  function scheduleSweepPoll() {
+    if (sweepTimer) { clearTimeout(sweepTimer); sweepTimer = null; }
+    if (isSweepRunning() && wsOpen === "followups" && pin) sweepTimer = setTimeout(function () { loadSweep(); }, 15000);
+  }
+  function applySweep(j) {
+    if (!j || !j.ok) return;
+    const was = isSweepRunning();
+    sweep.connected = j.connected;
+    if ("lastRunRequested" in j) sweep.lastRunRequested = j.lastRunRequested;
+    if ("lastSweepFinished" in j) sweep.lastSweepFinished = j.lastSweepFinished;
+    sweep.running = !!j.running;
+    sweep.startedAt = j.startedAt || null;
+    if (sweep.running && !isSweepRunning()) { sweep.running = false; sweep.startedAt = null; }
+    if (was && !isSweepRunning()) {
+      sweep.msg = "";
+      pull(C.followups).then(function () { if (wsOpen === "followups") renderWork(); });
+      pullActivity();
+    }
+    scheduleSweepPoll();
+  }
   function loadSweep() {
     if (!pin) return Promise.resolve();
     sweep.loadedAt = Date.now();
     loadReqs();
     return api("/hq/followups/status", { base: FU_API }).then(function (j) {
-      if (j.ok) { sweep.connected = j.connected; sweep.lastRunRequested = j.lastRunRequested; sweep.lastSweepFinished = j.lastSweepFinished; }
+      if (j.ok) applySweep(j);
       if (wsOpen === "followups") renderWork();
-    }).catch(function () {});
+    }).catch(function () { scheduleSweepPoll(); });
   }
   function sweepHtml() {
     const notConn = sweep.connected === false;
     const f = sweep.lastSweepFinished;
-    return "<div class='sweep'><button class='run-btn' id='fu-run'" + (notConn || sweep.busy ? " disabled" : "") + ">" +
-      (sweep.busy ? "⏳ Starting…" : notConn ? "🔌 Sweep not connected yet" : "▶ Run update") + "</button>" +
+    const running = isSweepRunning();
+    const starting = sweep.busy && !running;
+    const label = starting ? "⏳ Starting…" : running ? "<span class='run-spin' aria-hidden='true'></span>Sweep running, started " + esc(fmtClockET(sweep.startedAt) || "just now") : notConn ? "🔌 Sweep not connected yet" : "▶ Run update";
+    return "<div class='sweep'><button class='run-btn' id='fu-run'" + (notConn || starting || running ? " disabled" : "") + (running ? " aria-busy='true'" : "") + ">" +
+      label + "</button>" +
       (sweep.msg ? "<p class='sweep-msg'>" + esc(sweep.msg) + "</p>" : "") +
       "<p class='sweep-times'>Last run: <b>" + esc(fmtIsoET(sweep.lastRunRequested)) + "</b><br>Last finished: <b>" + esc(f ? fmtIsoET(f.at) : "never") + "</b>" +
       (f && f.summary ? "<br>" + esc((f.by ? f.by + ": " : "") + f.summary) : "") + "</p></div>";
   }
   function runSweep() {
-    if (sweep.busy) return;
+    if (sweep.busy || isSweepRunning()) return;
     sweep.busy = true; sweep.msg = ""; renderWork();
     api("/hq/followups/run", { method: "POST", body: {}, base: FU_API }).then(function (j) {
       sweep.busy = false;
-      if (j.ok) { sweep.msg = "Sweep started… The Front Desk bot will update this list."; sweep.lastRunRequested = j.lastRunRequested; pullActivity(); }
-      else if (j.error === "not_connected" || j.error === "not_configured") { sweep.connected = false; sweep.msg = "Sweep not connected yet."; }
+      if (j.ok || (j.httpStatus === 409 && (j.running || j.startedAt))) {
+        sweep.running = true;
+        sweep.startedAt = j.startedAt || j.lastRunRequested || new Date().toISOString();
+        if (j.lastRunRequested) sweep.lastRunRequested = j.lastRunRequested;
+        sweep.msg = "";
+        scheduleSweepPoll();
+        if (j.ok) pullActivity();
+      } else if (j.error === "not_connected" || j.error === "not_configured") { sweep.connected = false; sweep.msg = "Sweep not connected yet."; }
       else if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
       else { sweep.msg = j.message || ("Couldn't start the sweep (HTTP " + j.httpStatus + ")."); if (j.lastRunRequested) sweep.lastRunRequested = j.lastRunRequested; }
       renderWork();
@@ -1009,7 +1048,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   $("sheet-close").addEventListener("click", closeSheet);
   $("backdrop").addEventListener("click", closeSheet);
   $("search").addEventListener("input", function (e) { query = e.target.value; renderBots(); });
-  document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) { syncAll(); if (wsOpen === "followups") loadReqs(); } });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && pin) { syncAll(); if (wsOpen === "followups") { loadReqs(); loadSweep(); } } });
   let wasWide = window.innerWidth >= 900;
   window.addEventListener("resize", function () { const w = window.innerWidth >= 900; if (w !== wasWide) { wasWide = w; renderBoard(); } });
 

@@ -1,4 +1,4 @@
-const CACHE = "penguin-hq-v7";
+const CACHE = "penguin-hq-v8";
 const ASSETS = [
   "./",
   "./index.html",
