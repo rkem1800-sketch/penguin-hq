@@ -22,7 +22,7 @@
   --serif: "Fraunces", Georgia, serif;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; height: 100%; }
+html, body { margin: 0; min-height: 100%; }
 html { background: var(--bg); }
 body {
   font-family: var(--sans); color: var(--ink); font-size: 16px; line-height: 1.4;
@@ -38,6 +38,7 @@ body {
 }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
 a { color: inherit; }
 
 .app-header {
@@ -79,6 +80,8 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   border-radius: 14px; padding: 11px 14px; outline: none; min-width: 180px;
   -webkit-appearance: none; appearance: none;
 }
+.field-row { display: flex; gap: 8px; align-items: center; }
+.field-row select { flex: 1; min-width: 0; }
 .field select {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2396a0bd' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
@@ -122,9 +125,9 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   padding: 16px 16px 12px; overflow: auto; max-height: calc(100dvh - 250px);
   min-height: 420px;
 }
-.panel-h { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
-.panel-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.88rem; font-weight: 500; }
-.tech-block { margin-bottom: 16px; }
+.panel-h { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; margin: 0 0 2px; letter-spacing: -0.02em; }
+.panel-sub { margin: 0 0 10px; color: var(--muted); font-size: 0.82rem; font-weight: 500; }
+.tech-block { margin-bottom: 12px; }
 .tech-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .swatch { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent); background: var(--c); }
 .tech-name { font-weight: 800; }
@@ -132,7 +135,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .stop {
   display: grid; grid-template-columns: 32px 1fr auto; gap: 8px; align-items: start;
   background: rgba(255,255,255,0.04); border: 1px solid var(--line);
-  border-radius: 16px; padding: 10px 12px; margin-bottom: 6px;
+  border-radius: 14px; padding: 8px 10px; margin-bottom: 4px;
 }
 .stop .num {
   width: 28px; height: 28px; border-radius: 50%; background: var(--c); color: #071014;
@@ -146,7 +149,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 }
 .drive {
   grid-column: 1 / -1; display: flex; align-items: center; gap: 8px;
-  color: var(--muted); font-size: 0.78rem; font-weight: 700; margin: 2px 4px 8px 16px;
+  color: var(--muted); font-size: 0.75rem; font-weight: 700; margin: 1px 4px 5px 16px;
 }
 .drive::before { content: ""; width: 2px; height: 16px; background: color-mix(in srgb, var(--c) 70%, transparent); border-radius: 2px; }
 
@@ -182,9 +185,10 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 
 @media (max-width: 860px) {
   h1 { font-size: 1.6rem; }
-  .layout { grid-template-columns: 1fr; }
+  body { height: auto; }
+  .layout { grid-template-columns: 1fr; height: auto; flex: 0 0 auto; }
   #map { height: 58vh; min-height: 340px; }
-  .panel { max-height: none; min-height: 0; }
+  .panel { max-height: none; min-height: 0; overflow: visible; }
   .suggest-wrap { margin-left: 0; width: 100%; }
   .suggest { width: 100%; }
   .field { flex: 1 1 140px; }
@@ -221,10 +225,12 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     </div>
     <div class="field" id="tech2-wrap" hidden>
       <label for="tech2">Second tech</label>
-      <select id="tech2" aria-label="Second tech"></select>
+      <div class="field-row">
+        <select id="tech2" aria-label="Second tech"></select>
+        <button type="button" class="ghost remove-btn" id="remove-tech" aria-label="Remove second tech">✕</button>
+      </div>
     </div>
     <button type="button" class="add-btn" id="add-tech">+ Add second tech</button>
-    <button type="button" class="ghost remove-btn" id="remove-tech" hidden aria-label="Remove second tech">✕</button>
     <div class="suggest-wrap">
       <button type="button" class="suggest" id="suggest" disabled aria-disabled="true" title="Coming in full build">Suggest better order</button>
       <div class="tip">Coming in full build</div>
