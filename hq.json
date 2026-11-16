@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15",
+ "updated": "2026-11-16",
  "jobsNote": "Jobs are the last known from each bot's chat. They may have changed.",
  "areas": [
   {
@@ -56,6 +56,15 @@
    "chat": "grokbot://app/v1/agent?id=25913e09-d26a-4388-81eb-79e5c83fbaa9"
   },
   {
+   "id": "4c7e9b69-e5be-449f-abe5-8962f3d56879",
+   "name": "Front Desk – Missed Contacts",
+   "area": "sales",
+   "emoji": "📞",
+   "role": "Makes sure nobody who called, chatted or booked falls through the cracks. Keeps your Follow-ups list up to date.",
+   "jobs": [],
+   "chat": "grokbot://app/v1/agent?id=4c7e9b69-e5be-449f-abe5-8962f3d56879"
+  },
+  {
    "id": "00b82e27-8954-4d2f-a136-276abf8a2c53",
    "name": "Ops CEO",
    "area": "ops",
@@ -72,15 +81,6 @@
    "role": "Answers job questions from ServiceTitan while you're on calls or driving.",
    "jobs": [],
    "chat": "grokbot://app/v1/agent?id=ba9e0b12-a7d0-4dd2-92a4-f3db6ea95688"
-  },
-  {
-   "id": "5455c5e6-f272-4355-8dca-8c24635e2b90",
-   "name": "ServiceTitan Scheduler",
-   "area": "ops",
-   "emoji": "📅",
-   "role": "Checks the schedule and booked jobs in ServiceTitan.",
-   "jobs": [],
-   "chat": "grokbot://app/v1/agent?id=5455c5e6-f272-4355-8dca-8c24635e2b90"
   },
   {
    "id": "5fc91739-c7e5-42a7-9cab-05bbde3ce604",
@@ -147,21 +147,6 @@
    "role": "Sales and install help for field manager Eric Stamper.",
    "jobs": [],
    "chat": "grokbot://app/v1/agent?id=02818ca4-932b-4347-9e87-7025c4b1dd7f"
-  },
-  {
-   "id": "2b15e4a6-a7cb-4c27-9b04-005741a6cd63",
-   "name": "Abby – Missed Calls",
-   "area": "sales",
-   "emoji": "📞",
-   "role": "Spots abandoned calls so nobody slips through.",
-   "jobs": [
-    {
-     "when": "Every 5 min, 8 AM–8 PM",
-     "what": "Abandoned call check",
-     "status": "paused"
-    }
-   ],
-   "chat": "grokbot://app/v1/agent?id=2b15e4a6-a7cb-4c27-9b04-005741a6cd63"
   },
   {
    "id": "1c16ba10-3fa3-4bac-8087-2873bc2be0e3",

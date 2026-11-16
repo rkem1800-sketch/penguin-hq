@@ -226,6 +226,21 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .check input { width: 26px; height: 26px; }
 .danger { border: 1px solid #ef4444; background: transparent; color: #fca5a5; border-radius: 14px; padding: 12px 16px; font-weight: 800; }
 .danger.sure { background: #ef4444; color: #fff; }
+.wscard.wide { grid-column: 1 / -1; min-height: 110px; }
+.sweep { background: linear-gradient(150deg, rgba(14,165,233,0.25), var(--elev) 70%); border: 1px solid rgba(14,165,233,0.45); border-radius: 20px; padding: 14px; margin: 0 0 12px; }
+.run-btn { width: 100%; border: 0; border-radius: 16px; padding: 18px; font-size: 1.25rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #0ea5e9, #22c7a9); box-shadow: 0 10px 26px rgba(14,165,233,0.35); }
+.run-btn:disabled { background: var(--elev-2); color: var(--muted); box-shadow: none; }
+.sweep-msg { margin: 10px 2px 0; font-weight: 700; color: #7dd3fc; }
+.sweep-times { margin: 10px 2px 0; color: var(--soft); font-size: 0.92rem; line-height: 1.5; }
+.fu-row { display: flex; gap: 12px; align-items: flex-start; }
+.fu-check { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 16px; border: 3px solid #4ade80; background: transparent; font-size: 1.8rem; font-weight: 900; color: #0b0f1c; }
+.fu-check[aria-pressed="true"] { background: #4ade80; }
+.kcard.fu.is-done { opacity: 0.6; }
+.kcard.fu.is-done .ttl { text-decoration: line-through; }
+.fu-want { font-size: 1.02rem; margin-top: 4px; color: var(--ink); }
+.fu-links { margin-left: 68px; }
+.fu-links a { text-decoration: none; }
+.fu-done-lbl { margin: 6px 0 0 68px; font-size: 0.8rem; color: var(--muted); }
 @media (min-width: 900px) {
   .main { max-width: 1100px; }
   .wsgrid { grid-template-columns: repeat(4, 1fr); }
@@ -337,7 +352,24 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       title: function (r) { return (r.job ? "Job " + r.job : "Permit") + (r.customer ? " · " + r.customer : ""); },
       sub: function (r) { return [r.address && "📍 " + esc(r.address), r.due && "Due " + fmtDate(r.due), r.owner && "👤 " + esc(r.owner)].filter(Boolean).join(" · "); }, notes: function (r) { return r.comments; } }
   };
-  const WS_ORDER = ["ar", "closeout", "members", "permits"];
+  const FU_CHANNELS = ["ST Chat", "ST Lead", "ST Booking", "Missed call", "Signpost", "Google LSA", "Voicemail", "Web form", "Email"];
+  const FU_CLOSED = { "Handled": 1, "Do not contact": 1 };
+  function fuOpen(r) { return !FU_CLOSED[r.status]; }
+  function fuUrgent(r) { return r.urgency === "urgent" || r.status === "Urgent"; }
+  function fmtET(s) { // "YYYY-MM-DD HH:MM" in ET
+    if (!s) return ""; const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?$/); if (!m) return s;
+    const d = new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0));
+    return d.toLocaleDateString([], { month: "short", day: "numeric" }) + (m[4] ? ", " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "") + " ET";
+  }
+  function fmtIsoET(iso) { if (!iso) return "never"; try { return new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return iso; } }
+  WS.followups = { name: "Follow-ups", emoji: "📞", color: "#0ea5e9", noun: "follow-up", idPrefix: "fu-rk-",
+    statuses: [["Waiting", "#38bdf8"], ["Urgent", "#ef4444"], ["Contacted", "#fbbf24"], ["Booked", "#a78bfa"], ["Handled", "#4ade80"], ["Do not contact", "#94a3b8"]],
+    fields: [["customer", "Customer", "text"], ["phone", "Phone", "tel"], ["email", "Email", "email"], ["channel", "Channel", "select", FU_CHANNELS],
+      ["contactedAt", "Contacted (ET)", "dt"], ["want", "What they want", "long"], ["urgency", "Urgency", "select", ["normal", "urgent"]], ["job", "ST job #", "text"], ["note", "Note", "long"]],
+    title: function (r) { return r.customer || r.phone || r.email || "Contact"; },
+    sub: function (r) { return [r.contactedAt && esc(fmtET(r.contactedAt)), r.job && "Job " + esc(r.job)].filter(Boolean).join(" · "); },
+    notes: function (r) { return r.note; } };
+  const WS_ORDER = ["followups", "ar", "closeout", "members", "permits"];
   function wsColor(w, status) { const s = WS[w].statuses.find(function (x) { return x[0] === status; }); return s ? s[1] : "#94a3b8"; }
 
   /* ---------- Dates ---------- */
@@ -460,27 +492,38 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     C.tasks.items.filter(function (t) { return t.status === "review" || (t.needsRK && t.status !== "done"); }).forEach(function (t) {
       list.push("<button class='item' data-edit-task='" + esc(t.id) + "'><span class='t'>" + esc(t.text) + "</span><span class='k' style='--c:#f472b6'>" + (t.status === "review" ? "For review" : "Task") + "</span></button>");
     });
+    const fuOpenN = C.followups.items.filter(fuOpen).length;
+    const fuUrg = C.followups.items.filter(function (r) { return fuOpen(r) && (fuUrgent(r) || r.needsRK); });
+    let fuHtml = "";
+    if (fuOpenN) {
+      fuHtml = "<button class='item' data-ws='followups' style='background:rgba(14,165,233,0.25)'><span class='t'>📞 " + fuOpenN + " open follow-up" + (fuOpenN === 1 ? "" : "s") + (fuUrg.length ? " · " + fuUrg.length + " urgent" : "") + "</span><span class='k' style='--c:#0ea5e9;color:#fff'>Open ▶</span></button>" +
+        fuUrg.slice(0, 6).map(function (r) {
+          return "<button class='item' data-edit-row='followups:" + esc(r.id) + "'><span class='t'>🔥 " + esc(WS.followups.title(r)) + (r.want ? " — " + esc(r.want.slice(0, 60)) : "") + "</span><span class='k' style='--c:#ef4444;color:#fff'>Urgent</span></button>";
+        }).join("");
+    }
     WS_ORDER.forEach(function (w) {
+      if (w === "followups") return;
       C[w].items.filter(function (r) { return r.needsRK; }).forEach(function (r) {
         list.push("<button class='item' data-edit-row='" + w + ":" + esc(r.id) + "'><span class='t'>" + esc(WS[w].emoji + " " + WS[w].title(r)) + "</span><span class='k' style='--c:" + WS[w].color + ";color:#fff'>" + esc(WS[w].name) + "</span></button>");
       });
     });
-    el.innerHTML = "<div class='needs'><h3>🙋 Needs you" + (list.length ? " <span class='pill' style='--pc:#f472b6'>" + list.length + "</span>" : "") + "</h3>" +
-      (list.length ? list.slice(0, 12).join("") + (list.length > 12 ? "<p class='note'>+" + (list.length - 12) + " more</p>" : "") : "<p class='none'>Nothing needs you right now. 🎉</p>") + "</div>";
+    const total = list.length + fuOpenN;
+    el.innerHTML = "<div class='needs'><h3>🙋 Needs you" + (total ? " <span class='pill' style='--pc:#f472b6'>" + total + "</span>" : "") + "</h3>" + fuHtml +
+      (list.length ? list.slice(0, 12).join("") + (list.length > 12 ? "<p class='note'>+" + (list.length - 12) + " more</p>" : "") : (fuOpenN ? "" : "<p class='none'>Nothing needs you right now. 🎉</p>")) + "</div>";
   }
   function wsCounts(w) {
     const rows = C[w].items; const by = {};
     rows.forEach(function (r) { by[r.status] = (by[r.status] || 0) + 1; });
-    return { n: rows.length, by: by, needs: rows.filter(function (r) { return r.needsRK; }).length };
+    return { n: rows.length, items: rows, by: by, needs: rows.filter(function (r) { return r.needsRK; }).length };
   }
   function wsCardsHtml(big) {
     return WS_ORDER.map(function (w) {
       const c = wsCounts(w), cfg = WS[w];
-      const open = w === "ar" ? (c.by["Due"] || 0) + (c.by["In collection"] || 0) + " to collect" :
+      const open = w === "followups" ? c.items.filter(fuOpen).length + " open" + (c.items.filter(function (r) { return fuOpen(r) && fuUrgent(r); }).length ? " · 🔥 " + c.items.filter(function (r) { return fuOpen(r) && fuUrgent(r); }).length + " urgent" : "") : w === "ar" ? (c.by["Due"] || 0) + (c.by["In collection"] || 0) + " to collect" :
         w === "closeout" ? (c.by["Unresolved"] || 0) + (c.by["Incomplete"] || 0) + " open" :
         w === "members" ? (c.by["Confirmed due"] || 0) + " due" : c.n - (c.by["Approved"] || 0) - (c.by["Closed"] || 0) + " open";
-      return "<button class='wscard" + (big ? " big" : "") + "' style='--c:" + cfg.color + "' data-ws='" + w + "'><span class='e'>" + cfg.emoji + "</span><span class='n'>" + esc(cfg.name) + "</span>" +
-        "<span class='c'>" + (pin ? c.n : "🔒") + "</span><span class='s'>" + (pin ? esc(open) + (c.needs ? " · 🙋 " + c.needs : "") : "Sign in to see") + "</span></button>";
+      return "<button class='wscard" + (big ? " big" : "") + (w === "followups" ? " wide" : "") + "' style='--c:" + cfg.color + "' data-ws='" + w + "'><span class='e'>" + cfg.emoji + "</span><span class='n'>" + esc(cfg.name) + "</span>" +
+        "<span class='c'>" + (pin ? (w === "followups" ? c.items.filter(fuOpen).length : c.n) : "🔒") + "</span><span class='s'>" + (pin ? esc(open) + (c.needs ? " · 🙋 " + c.needs : "") : "Sign in to see") + "</span></button>";
     }).join("");
   }
   function renderHomeWs() { $("home-ws").innerHTML = wsCardsHtml(false); }
@@ -641,22 +684,29 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     const q = wsQ.trim().toLowerCase();
     const shown = c.items.filter(function (r) {
       if (wsStatus === "__needs") { if (!r.needsRK) return false; }
+      else if (wsStatus === "__open") { if (!fuOpen(r)) return false; }
       else if (wsStatus && r.status !== wsStatus) return false;
       if (q) { const hay = cfg.fields.map(function (f) { return Array.isArray(r[f[0]]) ? r[f[0]].join(" ") : r[f[0]]; }).join(" ").toLowerCase(); if (hay.indexOf(q) === -1) return false; }
       return true;
     });
     const closedSt = { Paid: 1, Forgiven: 1, "Do not contact": 1, "Closed out": 1, Completed: 1, Expired: 1, Approved: 1, Closed: 1 };
     if (wsOpen === "ar") shown.sort(function (a, b) { return ((closedSt[a.status] || 0) - (closedSt[b.status] || 0)) || (a.due || "9999").localeCompare(b.due || "9999"); });
+    else if (wsOpen === "followups") shown.sort(function (a, b) {
+      return ((FU_CLOSED[a.status] ? 1 : 0) - (FU_CLOSED[b.status] ? 1 : 0)) || ((fuUrgent(b) ? 1 : 0) - (fuUrgent(a) ? 1 : 0)) || (a.contactedAt || "9999").localeCompare(b.contactedAt || "9999");
+    });
     else shown.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
     let html = "<button class='back' id='ws-back'>◀ Workspaces</button><div class='ws-title'>" + cfg.emoji + " " + esc(cfg.name) + "</div>" +
       "<div class='toolbar'><input type='search' id='ws-q' placeholder='Search " + esc(cfg.name) + "' value='" + esc(wsQ) + "'><button class='add-btn' id='ws-add'>＋ Add</button></div>" +
-      "<div class='cols'><button class='col-tab' style='--c:#22c7a9' aria-pressed='" + (!wsStatus) + "' data-wss=''>All<span class='k'>" + counts.n + "</span></button>" +
+      (wsOpen === "followups" ? sweepHtml() : "") +
+      "<div class='cols'>" + (wsOpen === "followups" ? "<button class='col-tab' style='--c:#0ea5e9' aria-pressed='" + (wsStatus === "__open") + "' data-wss='__open'>Open<span class='k'>" + c.items.filter(fuOpen).length + "</span></button>" : "") +
+      "<button class='col-tab' style='--c:#22c7a9' aria-pressed='" + (!wsStatus) + "' data-wss=''>All<span class='k'>" + counts.n + "</span></button>" +
       (counts.needs ? "<button class='col-tab' style='--c:#f472b6' aria-pressed='" + (wsStatus === "__needs") + "' data-wss='__needs'>🙋 Needs you<span class='k'>" + counts.needs + "</span></button>" : "") +
       cfg.statuses.map(function (s) { return "<button class='col-tab' style='--c:" + s[1] + "' aria-pressed='" + (wsStatus === s[0]) + "' data-wss='" + esc(s[0]) + "'>" + esc(s[0]) + "<span class='k'>" + (counts.by[s[0]] || 0) + "</span></button>"; }).join("") + "</div>";
     if (!c.items.length) html += "<div class='empty-box'><div class='big'>" + cfg.emoji + "</div><p>Bots will fill this, or tap ＋ Add.</p><button class='btn' id='ws-add2'>＋ Add " + esc(cfg.noun) + "</button></div>";
     else if (!shown.length) html += "<div class='empty-box'><div class='big'>🔍</div><p>Nothing here" + (q ? " that matches" : "") + ".</p></div>";
     else html += "<div class='kcards'>" + shown.map(function (r) {
       const col = wsColor(wsOpen, r.status), n = cfg.notes(r);
+      if (wsOpen === "followups") return fuCard(r, col);
       return "<div class='kcard' style='--c:" + col + "'><button class='main-tap' data-edit-row='" + wsOpen + ":" + esc(r.id) + "'>" +
         "<div class='meta' style='margin-top:0'><span class='pill' style='--pc:" + col + "'>" + esc(r.status) + "</span>" + (r.needsRK ? "<span class='pill' style='--pc:#f472b6'>🙋 Needs you</span>" : "") + "</div>" +
         "<div class='ttl' style='margin-top:8px'>" + esc(cfg.title(r)) + "</div><div class='row-sub'>" + cfg.sub(r) + "</div>" +
@@ -671,11 +721,63 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     $("ws-add").addEventListener("click", function () { editRow(wsOpen, null); });
     const a2 = $("ws-add2"); if (a2) a2.addEventListener("click", function () { editRow(wsOpen, null); });
     el.querySelectorAll("[data-wss]").forEach(function (b) { b.addEventListener("click", function () { wsStatus = b.getAttribute("data-wss"); renderWork(); }); });
+    el.querySelectorAll("[data-fu-done]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const r = C.followups.items.find(function (x) { return x.id === b.getAttribute("data-fu-done"); }); if (!r) return;
+        r.status = r.status === "Handled" ? (fuUrgent(r) ? "Urgent" : "Waiting") : "Handled"; r.updatedAt = Date.now();
+        persist(C.followups);
+      });
+    });
+    const rn = $("fu-run"); if (rn) rn.addEventListener("click", runSweep);
+    if (wsOpen === "followups" && !sweep.loadedAt) loadSweep();
+  }
+  /* ---------- Follow-ups ---------- */
+  let sweep = { connected: null, lastRunRequested: null, lastSweepFinished: null, msg: "", busy: false, loadedAt: 0 };
+  function loadSweep() {
+    if (!pin) return Promise.resolve();
+    sweep.loadedAt = Date.now();
+    return api("/hq/followups/status").then(function (j) {
+      if (j.ok) { sweep.connected = j.connected; sweep.lastRunRequested = j.lastRunRequested; sweep.lastSweepFinished = j.lastSweepFinished; }
+      if (wsOpen === "followups") renderWork();
+    }).catch(function () {});
+  }
+  function sweepHtml() {
+    const notConn = sweep.connected === false;
+    const f = sweep.lastSweepFinished;
+    return "<div class='sweep'><button class='run-btn' id='fu-run'" + (notConn || sweep.busy ? " disabled" : "") + ">" +
+      (sweep.busy ? "⏳ Starting…" : notConn ? "🔌 Sweep not connected yet" : "▶ Run now") + "</button>" +
+      (sweep.msg ? "<p class='sweep-msg'>" + esc(sweep.msg) + "</p>" : "") +
+      "<p class='sweep-times'>Last run: <b>" + esc(fmtIsoET(sweep.lastRunRequested)) + "</b><br>Last finished: <b>" + esc(f ? fmtIsoET(f.at) : "never") + "</b>" +
+      (f && f.summary ? "<br>" + esc((f.by ? f.by + ": " : "") + f.summary) : "") + "</p></div>";
+  }
+  function runSweep() {
+    if (sweep.busy) return;
+    sweep.busy = true; sweep.msg = ""; renderWork();
+    api("/hq/followups/run", { method: "POST", body: {} }).then(function (j) {
+      sweep.busy = false;
+      if (j.ok) { sweep.msg = "Sweep started… The Front Desk bot will update this list."; sweep.lastRunRequested = j.lastRunRequested; pullActivity(); }
+      else if (j.error === "not_connected") { sweep.connected = false; sweep.msg = "Sweep not connected yet."; }
+      else if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
+      else { sweep.msg = j.message || ("Couldn't start the sweep (HTTP " + j.httpStatus + ")."); if (j.lastRunRequested) sweep.lastRunRequested = j.lastRunRequested; }
+      renderWork();
+    }).catch(function () { sweep.busy = false; sweep.msg = "Can't reach the server. Check your connection."; renderWork(); });
+  }
+  function fuCard(r, col) {
+    const done = r.status === "Handled", urg = fuUrgent(r);
+    const links = [r.phone && "<a class='pill soft' href='tel:" + esc(r.phone.replace(/[^\d+]/g, "")) + "'>📱 " + esc(r.phone) + "</a>", r.email && "<a class='pill soft' href='mailto:" + esc(r.email) + "'>✉️ " + esc(r.email) + "</a>"].filter(Boolean).join("");
+    return "<div class='kcard fu" + (done ? " is-done" : "") + "' style='--c:" + (urg && !done ? "#ef4444" : col) + "'><div class='fu-row'>" +
+      "<button class='fu-check' data-fu-done='" + esc(r.id) + "' aria-pressed='" + done + "' aria-label='" + (done ? "Mark not done" : "Mark done") + "'>" + (done ? "✓" : "") + "</button>" +
+      "<button class='main-tap' data-edit-row='followups:" + esc(r.id) + "'><div class='meta' style='margin-top:0'>" + (urg && !done ? "<span class='pill' style='--pc:#ef4444;color:#fff'>🔥 Urgent</span>" : "") +
+      (urg && !done && r.status === "Urgent" ? "" : "<span class='pill' style='--pc:" + col + "'>" + esc(r.status) + "</span>") + (r.channel ? "<span class='pill soft'>" + esc(r.channel) + "</span>" : "") + (r.needsRK ? "<span class='pill' style='--pc:#f472b6'>🙋</span>" : "") + "</div>" +
+      "<div class='ttl' style='margin-top:6px'>" + esc(WS.followups.title(r)) + "</div>" + (r.want ? "<div class='fu-want'>" + esc(r.want) + "</div>" : "") +
+      "<div class='row-sub'>" + WS.followups.sub(r) + "</div>" + (r.note ? "<div class='notes'>" + esc(r.note) + "</div>" : "") +
+      (r.lastSeen ? "<div class='notes'>Last seen by sweep: " + esc(fmtDate(r.lastSeen)) + "</div>" : "") + "</button></div>" +
+      (links ? "<div class='meta fu-links'>" + links + "</div>" : "") + "<div class='fu-done-lbl'>" + (done ? "Done ✓" : "Tap the box when it's handled") + "</div></div>";
   }
   function editRow(w, id) {
     const cfg = WS[w], c = C[w];
     const r = id ? c.items.find(function (x) { return x.id === id; }) : null;
-    const v = r || { status: wsStatus && wsStatus !== "__needs" ? wsStatus : cfg.statuses[0][0], flags: [] };
+    const v = r || { status: wsStatus && wsStatus.indexOf("__") !== 0 ? wsStatus : cfg.statuses[0][0], flags: [] };
     let html = "<h2>" + cfg.emoji + " " + (r ? "Edit " : "Add ") + esc(cfg.noun) + "</h2><div class='form-grid'>" +
       "<div><label for='f-status'>Status</label><select id='f-status'>" + cfg.statuses.map(function (s) { return "<option" + (v.status === s[0] ? " selected" : "") + ">" + esc(s[0]) + "</option>"; }).join("") + "</select></div>";
     cfg.fields.forEach(function (f) {
@@ -683,6 +785,9 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       if (f[2] === "long") html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><textarea id='f-" + k + "' maxlength='2000'>" + esc(val || "") + "</textarea></div>";
       else if (f[2] === "flags") html += "<div><label>" + esc(f[1]) + "</label><div class='seg' id='f-flags'>" + FLAGS.map(function (fl) {
         return "<button type='button' style='--pc:#fbbf24' data-flag='" + esc(fl) + "' aria-pressed='" + ((val || []).indexOf(fl) !== -1) + "'>" + esc(fl) + "</button>"; }).join("") + "</div></div>";
+      else if (f[2] === "select") { const opts = f[3].slice(); if (val && opts.indexOf(val) === -1) opts.push(val);
+        html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><select id='f-" + k + "'>" + (k === "urgency" ? "" : "<option value=''>—</option>") + opts.map(function (o) { return "<option" + (val === o ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + "</select></div>"; }
+      else if (f[2] === "dt") html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><input id='f-" + k + "' type='datetime-local' value='" + esc((val || "").replace(" ", "T")) + "'></div>";
       else html += "<div><label for='f-" + k + "'>" + esc(f[1]) + "</label><input id='f-" + k + "' type='" + (f[2] === "number" ? "number' step='0.01' inputmode='decimal" : f[2]) + "' value='" + esc(val == null ? "" : val) + "'></div>";
     });
     html += "<label class='check'><input type='checkbox' id='f-needs'" + (v.needsRK ? " checked" : "") + "> 🙋 Needs me</label>" +
@@ -691,12 +796,13 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     const fl = $("f-flags");
     if (fl) fl.querySelectorAll("[data-flag]").forEach(function (b) { b.addEventListener("click", function () { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); }); });
     $("f-save").addEventListener("click", function () {
-      const now = Date.now(); const obj = r || { id: uid(w + "-"), createdAt: now };
+      const now = Date.now(); const obj = r || { id: uid(cfg.idPrefix || w + "-"), createdAt: now };
       obj.status = $("f-status").value; obj.needsRK = $("f-needs").checked;
       cfg.fields.forEach(function (f) {
         const k = f[0];
         if (f[2] === "flags") obj[k] = Array.prototype.filter.call(fl.querySelectorAll("[data-flag]"), function (b) { return b.getAttribute("aria-pressed") === "true"; }).map(function (b) { return b.getAttribute("data-flag"); });
         else if (f[2] === "number") { const n = parseFloat($("f-" + k).value); obj[k] = isFinite(n) ? n : null; }
+        else if (f[2] === "dt") obj[k] = $("f-" + k).value.replace("T", " ").slice(0, 16);
         else obj[k] = $("f-" + k).value.trim();
       });
       if (!cfg.title(obj).trim() || cfg.fields.every(function (f) { return !obj[f[0]] || (Array.isArray(obj[f[0]]) && !obj[f[0]].length); })) { $("f-err").textContent = "Fill in at least one field."; return; }
@@ -801,7 +907,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   }
   document.addEventListener("click", function (e) {
     const s = e.target.closest("[data-signin]"); if (s) { openSettings(); return; }
-    const w = e.target.closest("[data-ws]"); if (w) { wsOpen = w.getAttribute("data-ws"); wsStatus = ""; wsQ = ""; showTab("work"); renderWork(); return; }
+    const w = e.target.closest("[data-ws]"); if (w) { wsOpen = w.getAttribute("data-ws"); wsStatus = wsOpen === "followups" ? "__open" : ""; sweep.loadedAt = 0; wsQ = ""; showTab("work"); renderWork(); return; }
     const t = e.target.closest("[data-edit-task]"); if (t) { editTask(t.getAttribute("data-edit-task")); return; }
     const r = e.target.closest("[data-edit-row]"); if (r) { const p = r.getAttribute("data-edit-row").split(":"); editRow(p[0], p.slice(1).join(":")); }
   });
