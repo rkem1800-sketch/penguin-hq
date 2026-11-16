@@ -343,7 +343,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       return "<li class='" + (j.status === "paused" ? "paused" : "") + "'>⏰<span><b>" + esc(j.when) + ":</b> " + esc(j.what) + (j.status === "paused" ? "<span class='pz'>Paused</span>" : "") + "</span></li>";
     }).join("");
     return "<article class='bot' style='--c:" + esc(a.color) + "'><div class='top'><div class='av'>" + esc(b.emoji) + "</div><div><h3>" + esc(b.name) + "</h3>" +
-      "<p class='role'>" + esc(b.role) + "</p>" + (b.kind === "personal" ? "<span class='badge'>Personal</span>" : "") + "</div></div>" +
+      "<p class='role'>" + esc(b.role) + "</p>" + "</div></div>" +
       (jobs ? "<ul class='jobs'>" + jobs + "</ul>" : "") +
       "<a class='open-chat' href='" + esc(safeUrl(b.chat)) + "'>💬 Open chat</a></article>";
   }

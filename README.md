@@ -1,6 +1,6 @@
 # Penguin HQ
 
-A colorful, installable (PWA) home screen for all of RK's Grok Bot assistants at Penguin Air & Plumbing. Same setup as the Video Library and Drink Library: plain static files, no build step, hosted on GitHub Pages.
+A colorful, installable (PWA) home screen for RK's Penguin Air & Plumbing work bots (work only, no personal bots). Same setup as the Video Library: plain static files, no build step, hosted on GitHub Pages.
 
 Live: https://rkem1800-sketch.github.io/penguin-hq/
 
@@ -41,7 +41,6 @@ This page is **public**. `hq.json` holds only bot names, one-line roles, job nam
     "area": "money",
     "emoji": "📗",
     "role": "One plain-English line.",
-    "kind": "work",
     "chat": "grokbot://app/v1/agent?id=10f95832-ee4b-4be2-88dc-fa8434bcf25d",
     "jobs": [{ "when": "Weekdays ~7 AM", "what": "QuickBooks check to #alerts", "status": "on" }]
   }],

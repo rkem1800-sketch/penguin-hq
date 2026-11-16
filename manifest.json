@@ -1,7 +1,7 @@
 {
   "name": "Penguin HQ",
   "short_name": "HQ",
-  "description": "All of RK's Grok Bot assistants, tasks and apps in one place.",
+  "description": "Penguin Air & Plumbing bots, tasks and work apps in one place.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
