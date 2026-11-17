@@ -251,11 +251,14 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .fu-act.call { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: transparent; color: #fff; }
 .fu-act.text { background: linear-gradient(135deg, #0ea5e9, #2563eb); border-color: transparent; color: #fff; }
 .fu-act.bot { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.14); }
+.fu-act.dismiss { border-color: rgba(248,113,113,0.65); background: rgba(248,113,113,0.16); }
+.fu-acts.is-dismissing .fu-act { opacity: 0.55; pointer-events: none; }
 .fu-act.wide { grid-column: 1 / -1; }
 .fu-req { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(167,139,250,0.14); border: 1px solid rgba(167,139,250,0.45); font-size: 0.98rem; line-height: 1.4; }
 .fu-req.needs_rk { background: rgba(244,114,182,0.16); border-color: rgba(244,114,182,0.6); }
 .fu-req.done { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.5); }
 .fu-req.failed { background: rgba(248,113,113,0.14); border-color: rgba(248,113,113,0.55); }
+.fu-req.dismissing { background: rgba(248,113,113,0.14); border-color: rgba(248,113,113,0.55); }
 .fu-req .res { margin-top: 6px; white-space: pre-wrap; }
 .fu-done-lbl { margin: 6px 0 0 68px; font-size: 0.8rem; color: var(--muted); }
 @media (min-width: 900px) {
@@ -831,6 +834,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       });
     });
     el.querySelectorAll("[data-fu-req]").forEach(function (b) { b.addEventListener("click", function () { const p = b.getAttribute("data-fu-req").split("|"); reqSheet(p[0], p[1]); }); });
+    el.querySelectorAll("[data-fu-dismiss]").forEach(function (b) { b.addEventListener("click", function () { dismissRow(b.getAttribute("data-fu-dismiss")); }); });
     el.querySelectorAll("[data-fu-note]").forEach(function (b) { b.addEventListener("click", function () { noteSheet(b.getAttribute("data-fu-note")); }); });
     const rn = $("fu-run"); if (rn) rn.addEventListener("click", runSweep);
     if (wsOpen === "followups" && !sweep.loadedAt) loadSweep();
@@ -869,6 +873,26 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
         if (j.request) { fuReqs[id] = j.request; closeSheet(); renderWork(); pullActivity(); loadReqs(); if (!j.ok) { sweep.msg = j.message; renderWork(); } return; }
         b.disabled = false; b.textContent = "Send to Front Desk"; $("rq-err").textContent = j.message || ("Couldn't send (HTTP " + j.httpStatus + ").");
       }).catch(function () { b.disabled = false; b.textContent = "Send to Front Desk"; $("rq-err").textContent = "Can't reach the server. Check your connection."; });
+    });
+  }
+  function dismissRow(id) {
+    const r = C.followups.items.find(function (x) { return x.id === id; }); if (!r) return;
+    const cur = fuReqs[id];
+    if (cur && cur.kind === "dismiss" && (cur.status === "queued" || cur.status === "working" || cur.optimistic)) return;
+    if (!confirm("Dismiss this call in HQ and ServiceTitan?")) return;
+    const prev = cur;
+    fuReqs[id] = { kind: "dismiss", status: "queued", note: "", result: "", createdAt: Date.now(), updatedAt: Date.now(), optimistic: true };
+    renderWork();
+    api("/hq/followups/request", { method: "POST", base: FU_API, body: { rowId: id, kind: "dismiss", note: "" } }).then(function (j) {
+      if (j.httpStatus === 401) { signOut("Your PIN stopped working. Sign in again."); return; }
+      if (j.request) { fuReqs[id] = j.request; renderWork(); pullActivity(); loadReqs(); if (!j.ok) { sweep.msg = j.message; renderWork(); } return; }
+      if (prev) fuReqs[id] = prev; else delete fuReqs[id];
+      sweep.msg = j.message || ("Couldn't send the dismiss (HTTP " + j.httpStatus + ").");
+      renderWork();
+    }).catch(function () {
+      if (prev) fuReqs[id] = prev; else delete fuReqs[id];
+      sweep.msg = "Can't reach the server. Check your connection.";
+      renderWork();
     });
   }
   function noteSheet(id) {
@@ -961,15 +985,21 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   }
   function fuReqHtml(r) {
     const q = fuReqs[r.id]; if (!q) return "";
-    const k = REQ_KINDS[q.kind] || ["📨", q.kind];
+    const dismissing = q.kind === "dismiss" && (q.status === "queued" || q.status === "working" || q.optimistic);
+    if (dismissing) return "<div class='fu-req dismissing' aria-live='polite'><b>🚫 Dismiss:</b> Dismissing…</div>";
+    const k = REQ_KINDS[q.kind] || (q.kind === "dismiss" ? ["🚫", "Dismiss"] : ["📨", q.kind]);
     return "<div class='fu-req " + esc(q.status) + "'><b>" + k[0] + " " + esc(k[1].replace("…", "")) + ":</b> " + esc(REQ_STATUS[q.status] || q.status) +
       " <span style='color:var(--muted)'>· " + esc(fmtWhen(q.updatedAt || q.createdAt)) + "</span>" + (q.note ? "<div style='color:var(--soft)'>You: " + esc(q.note) + "</div>" : "") +
       (q.result ? "<div class='res'>" + esc(q.result) + "</div>" : "") + "</div>";
   }
   function fuActs(r) {
     const tel = (r.phone || "").replace(/[^\d+]/g, "");
-    return "<div class='fu-acts'>" + (tel ? "<a class='fu-act call' href='tel:" + esc(tel) + "'>📞 Call</a><a class='fu-act text' href='sms:" + esc(tel) + "'>💬 Text</a>" : "") +
+    const open = r.status !== "Handled" && r.status !== "Do not contact";
+    const q = fuReqs[r.id];
+    const dismissing = q && q.kind === "dismiss" && (q.status === "queued" || q.status === "working" || q.optimistic);
+    return "<div class='fu-acts" + (dismissing ? " is-dismissing" : "") + "'>" + (tel ? "<a class='fu-act call' href='tel:" + esc(tel) + "'>📞 Call</a><a class='fu-act text' href='sms:" + esc(tel) + "'>💬 Text</a>" : "") +
       Object.keys(REQ_KINDS).map(function (k) { return "<button class='fu-act bot' data-fu-req='" + esc(r.id) + "|" + k + "'>" + REQ_KINDS[k][0] + " " + esc(REQ_KINDS[k][1]) + "</button>"; }).join("") +
+      (open ? "<button class='fu-act dismiss' data-fu-dismiss='" + esc(r.id) + "'" + (dismissing ? " disabled" : "") + ">🚫 Dismiss</button>" : "") +
       "<button class='fu-act wide' data-fu-note='" + esc(r.id) + "'>📝 Add note</button></div>";
   }
   function editRow(w, id) {

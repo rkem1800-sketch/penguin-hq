@@ -11,7 +11,7 @@ const RUN_EVERY_MS = 5 * 60000, RUN_STALE_MS = 30 * 60000;
 const MAX_ROWS = 2000, MAX_TOMBS = 2000, MAX_EVENTS = 200;
 const KEY_ROWS = "hq:ws:followups", KEY_SWEEP = "hq:fu:sweep", KEY_ACT = "hq:activity", KEY_REQ = "hq:fu:requests";
 const REQ_PER_HOUR = 20, MAX_REQS = 300;
-const REQ_KINDS = { reply: "Draft a reply", schedule: "Schedule", check: "Check their file", ask: "Ask bot" };
+const REQ_KINDS = { reply: "Draft a reply", schedule: "Schedule", check: "Check their file", ask: "Ask bot", dismiss: "Dismiss" };
 const REQ_STATUSES = ["queued", "working", "needs_rk", "done", "failed"];
 
 function cors(req) {
@@ -181,7 +181,7 @@ async function writeReqs(env, list) { await env.KV.put(KEY_REQ, JSON.stringify({
 async function createRequest(req, env, body, by) {
   if (!connected(env)) return json(req, 503, { ok: false, error: "not_configured", message: "The Front Desk bot isn't connected yet." });
   const rowId = str(body && body.rowId, 64), kind = str(body && body.kind, 20), note = str(body && body.note, 1000);
-  if (!REQ_KINDS[kind]) return json(req, 400, { ok: false, error: "bad_kind", message: "kind must be reply, schedule, check or ask." });
+  if (!REQ_KINDS[kind]) return json(req, 400, { ok: false, error: "bad_kind", message: "kind must be reply, schedule, check, ask or dismiss." });
   if (kind === "ask" && !note) return json(req, 400, { ok: false, error: "note_required", message: "Type your question for the bot." });
   const row = (await readRows(env)).rows.find((r) => r.id === rowId);
   if (!row) return json(req, 404, { ok: false, error: "no_row", message: "That follow-up isn't on the list anymore." });
