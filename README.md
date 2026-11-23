@@ -13,6 +13,7 @@ Open the link in Safari → Share → **Add to Home Screen**. The icon is a peng
 - **Home**: daily brief, **Needs you** (For Review tasks + anything flagged `needsRK`), workspace counts, the **Activity** feed (grouped by day), and app tiles.
 - **Board** (PIN): Kanban with To Do, In Progress, For Review, Done, Future. On a phone you pick a column with the colored tabs and move cards with the ◀ / ▶ buttons; on a wide screen all five columns show. Cards have title, owner bot, priority (High/Med/Low), due date, notes and a "Needs me" flag. Search plus filters by bot and priority. Done cards drop off after 14 days. Old ticked tasks became Done; old open ones became To Do.
 - **Work** (PIN): AR Collections, Job Closeout, Membership Tracker, Permits. Each opens a phone-friendly card list with status tabs, search, ＋ Add and tap-to-edit.
+- **Plan** (PIN): Business Plan & Expenses — Business plan (`W - Ops CEO`), Budget vs actual (`Bud - Penguin Budget`), Expenses (`W - Quinn`, read-only QBO), and Fixed costs. All figures live only in Worker KV behind RK's PIN; empty sections show "Waiting for data from <bot>".
 - **Bots**: every work bot grouped by area, with search and area chips, scheduled jobs, open-task count, and **Open chat**.
 
 ## What's public vs PIN-protected
@@ -21,15 +22,18 @@ This page is **public**. `hq.json` holds only bot names, one-line roles, job nam
 The **board, workspaces, activity feed and daily brief** live in the Cloudflare Worker's KV and need RK's PIN, the **same PIN as the Video Library**. Because both apps share the origin `rkem1800-sketch.github.io`, a PIN saved in the Video Library in the same browser signs HQ in too, and signing out signs out both.
 
 
-## Business Plan & Expenses mockup
+## Business Plan & Expenses (`/hq/finance`)
 
-A public, example-only preview lives at [`mockup-business.html`](https://rkem1800-sketch.github.io/penguin-hq/mockup-business.html). Every number is fake and labeled **EXAMPLE DATA — not real numbers**. It is not wired to QuickBooks, ServiceTitan, or any Worker. The Follow-ups tracker is unchanged.
+The **Plan** tab in HQ is a public shell with **no amounts, addresses, or financial figures** in this repo. All real figures live in `video-library-api` Worker KV (`hq:finance`), read behind RK's `X-PIN` (`GET /hq/finance`), and written by bots with `Authorization: Bearer $PENGUIN_HQ_WRITE_TOKEN` (`POST /hq/finance`).
 
-When real numbers go in, this page must stay empty of amounts, because GitHub Pages is public.
+Send `{ "section": "<name>", "by": "<bot>", "data": { ... } }` (each section updates independently; `data: null` clears a section). Never put real numbers or secrets in this README or repo.
 
-**Recommend (a):** serve the real figures only from the existing PIN-protected Cloudflare Worker (`video-library-api`, or a sibling Worker like `penguin-hq-api`), the same way the board and Work trackers already work. The public HQ page stays a shell. RK signs in once with the PIN he already uses, and the Ops CEO, Bud, and Quinn bots can post updates with the write token they already have. QuickBooks stays read-only through Quinn.
+- **`plan`** (`W - Ops CEO`): `{ "year": 2027, "note": "...", "yearly": [{ "label": "Yearly revenue goal", "amount": 0, "actual": 0, "sub": "...", "status": "on_track|behind|done" }], "quarters": [{ "label": "Q1", "amount": 0, "actual": 0, "sub": "...", "status": "on_track|behind|done" }] }`
+- **`budget`** (`Bud - Penguin Budget`, ServiceTitan margins): `{ "period": "YYYY-MM", "note": "...", "revenue": { "actual": 0, "budget": 0, "sub": "..." }, "margins": [{ "label": "Replacements gross margin", "actual": 0, "target": 0, "status": "on_track|behind" }], "labor": { "actual": 0, "budget": 0 }, "overhead": { "actual": 0, "budget": 0 } }`
+- **`expenses`** (`W - Quinn`, QuickBooks Online read-only): `{ "source": "QuickBooks Online (read-only)", "note": "...", "months": [{ "month": "YYYY-MM", "label": "...", "operatingTotal": 0, "otherTotal": 0, "total": 0, "categories": [{ "name": "...", "amount": 0 }] }] }`
+- **`fixed`** (stored in KV only): `{ "note": "...", "items": [{ "id": "...", "title": "...", "landlord": "...", "address": "...", "monthlyTotal": 0, "breakdown": "...", "termEnd": "...", "renewedTo": "...", "escalation": "...", "reminderTitle": "...", "reminderText": "..." }] }`
 
-**Option (b)** is Cloudflare Access (email one-time code) on a separate workers.dev or Pages site. That is how **Penguin Pricing** is locked down (Zero Trust team `penguin19.cloudflareaccess.com`). A “Penguin Atlas” site was not found in this workspace. Access is a better fit if other staff need their own logins, but that tab would not live inside the public HQ app without moving it off GitHub Pages. For a tab RK opens in HQ, (a) is the simpler, safer fit.
+(An earlier static example-only layout preview remains at `mockup-business.html` with invented placeholder figures only.)
 
 ## Files
 
@@ -85,6 +89,8 @@ penguin-hq-api has its own wrong-PIN lockout (same rules). CORS allows only `htt
 | `POST /hq/followups/status` (penguin-hq-api) | write token | Start (scheduled sweeps): `{"by":"Front Desk","startedAt":ISO,"running":true}` sets the running flag and `lastRunRequested` (does not change `lastSweepFinished`). Finish: `{"by":"Front Desk","finishedAt":ISO,"summary":"..."}` clears `running`, stores `lastSweepFinished`, and writes an activity event. Skipped: `{"by":"Front Desk","status":"skipped"}` clears `running` only. |
 | `GET /hq/activity` | `X-PIN` | `{events: [{id, ts, by, text, kind, ws?}]}`, newest first, max 200 |
 | `POST /hq/activity` | write token | `{by, text, kind?, ws?}` or `{events: [...]}` (max 20 per call) |
+| `GET /hq/finance` | `X-PIN` | `{ok, finance: {plan, budget, expenses, fixed, updatedAt}}` |
+| `POST /hq/finance` | write token | Bots post a section: `{section: "plan\|budget\|expenses\|fixed", by, data, activity?}` (or top-level section keys) |
 | `GET /hq/brief` | `X-PIN` | `{brief}` |
 | `PUT /hq/brief` | brief or write token | See below |
 

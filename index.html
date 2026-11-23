@@ -161,7 +161,44 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 [hidden] { display: none !important; }
   /* ---- v3: board, workspaces, activity ---- */
-.tabbar button { font-size: 11px; }
+.tabbar button { font-size: 10.5px; letter-spacing: 0.03em; }
+.tabbar .ic { font-size: 1.45rem; }
+/* Plan & Expenses */
+.fin-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; align-items: center; }
+.fin-jump a, .fin-jump button { text-decoration: none; border: 1px solid var(--line); background: var(--elev); border-radius: 99px; padding: 9px 14px; font-size: 0.88rem; font-weight: 700; color: var(--soft); }
+.fin-jump .fin-ref { margin-left: auto; }
+.fin-sec { margin: 0 0 26px; }
+.fin-h { font-family: var(--serif); font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fin-src { margin: 0 0 12px; color: var(--muted); font-size: 0.86rem; font-weight: 600; }
+.fin-src strong { color: var(--soft); font-weight: 700; }
+.fin-card { background: var(--elev); border: 1px solid var(--line); border-left: 6px solid var(--c, var(--teal)); border-radius: 20px; padding: 16px 16px 14px; margin: 0 0 12px; }
+.fin-card.wait { border-left-color: var(--muted); background: rgba(18,22,38,0.65); }
+.fin-lbl { margin: 0 0 2px; color: var(--muted); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.fin-num { font-family: var(--serif); font-size: 2.05rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
+.fin-sub { margin: 6px 0 0; color: var(--soft); font-size: 0.94rem; font-weight: 600; }
+.fin-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.fin-chip { flex: 0 0 auto; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 99px; padding: 5px 10px; color: #071014; background: #4ade80; }
+.fin-chip.behind { background: #fbbf24; }
+.fin-chip.done { background: #22c7a9; }
+.fin-chip.wait { background: var(--elev-2); color: var(--muted); border: 1px solid var(--line); }
+.fin-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fin-qcard { background: var(--elev-2); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+.fin-qcard .fin-num { font-size: 1.32rem; }
+.fin-bar-wrap { margin-top: 10px; }
+.fin-bar { position: relative; height: 16px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.fin-bar > i { display: block; height: 100%; border-radius: 99px; background: var(--c, var(--teal)); width: var(--w); }
+.fin-bar.over > i { background: #f87171; }
+.fin-tgt { position: absolute; top: -3px; bottom: -3px; width: 3px; background: #fff; border-radius: 2px; left: var(--t); box-shadow: 0 0 0 2px rgba(7,10,20,0.5); }
+.fin-tgt-lbl { font-size: 0.76rem; font-weight: 700; color: var(--muted); margin: 6px 0 0; }
+.fin-months { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+.fin-mbtn { border: 1px solid var(--line); background: var(--elev); color: var(--soft); border-radius: 99px; padding: 7px 12px; font-size: 0.85rem; font-weight: 700; }
+.fin-mbtn[aria-pressed="true"] { background: #a78bfa; color: #071014; border-color: transparent; }
+.fin-exp { display: grid; gap: 10px; margin-top: 14px; }
+.fin-exp-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-bottom: 4px; }
+.fin-exp-name { font-weight: 700; font-size: 0.96rem; }
+.fin-exp-amt { font-weight: 800; color: var(--ink); font-size: 0.96rem; }
+.fin-remind { margin-top: 12px; background: rgba(251,191,36,0.14); border: 1px solid rgba(251,191,36,0.4); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 0.94rem; }
+.fin-remind .when { color: #fbbf24; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 4px; }
 .hello { font-family: var(--serif); font-size: 1.5rem; margin: 6px 2px 0; }
 .panel-box { background: var(--elev); border: 1px solid var(--line); border-radius: 22px; padding: 14px; }
 .needs { border-radius: 22px; padding: 16px; margin-top: 14px; background: linear-gradient(150deg, rgba(244,114,182,0.22), var(--elev) 70%); border: 1px solid rgba(244,114,182,0.4); }
@@ -349,6 +386,8 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     <section class="panel" id="p-board"><div id="board"></div></section>
     <section class="panel" id="p-work"><div id="work"></div></section>
 
+    <section class="panel" id="p-plan"><div id="plan-view"></div></section>
+
     <section class="panel" id="p-map">
       <div class="mp-top">
         <div class="mp-f"><label for="mp-date">Date</label><input type="date" id="mp-date" aria-label="Board date"></div>
@@ -379,6 +418,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     <button role="tab" aria-selected="true" data-tab="home"><span class="ic">🏠</span>Home</button>
     <button role="tab" aria-selected="false" data-tab="board"><span class="ic">✅</span>Board</button>
     <button role="tab" aria-selected="false" data-tab="work"><span class="ic">🗂️</span>Work</button>
+    <button role="tab" aria-selected="false" data-tab="plan"><span class="ic">📒</span>Plan</button>
     <button role="tab" aria-selected="false" data-tab="map"><span class="ic">🗺️</span>Map</button>
     <button role="tab" aria-selected="false" data-tab="bots"><span class="ic">🐧</span>Bots</button>
   </nav>
@@ -476,7 +516,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   let data = { areas: [], bots: [], links: [] };
   let pin = load(LS_PIN, "") || "";
   let brief = load(LS_BRIEF, null), events = load(LS_ACT, []);
-  let syncNote = "", tab = "home", briefState = pin ? "loading" : "locked";
+  let syncNote = "", tab = "home", briefState = pin ? "loading" : "locked", fin = null, finState = pin ? "loading" : "locked", finMonth = "";
   let boardCol = "todo", boardQ = "", boardBot = "", boardPri = "", wsOpen = "", wsStatus = "", wsQ = "", actShown = 15;
   function makeColl(name, path, list, lsItems, lsTombs) {
     return { name: name, path: path, base: name === "followups" ? FU_API : API, list: list, lsI: lsItems, lsT: lsTombs, items: load(lsItems, []), tombs: load(lsTombs, []), dirty: load(lsItems + ".dirty", false), timer: null };
@@ -503,7 +543,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     return fetch((opts.base || API) + path, { method: opts.method || "GET", headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpStatus = r.status; return j; }); });
   }
-  function signOut(reason) { pin = ""; try { localStorage.removeItem(LS_PIN); } catch (e) {} syncNote = reason || ""; briefState = "locked"; renderAll(); }
+  function signOut(reason) { pin = ""; try { localStorage.removeItem(LS_PIN); } catch (e) {} syncNote = reason || ""; briefState = "locked"; fin = null; finState = "locked"; finMonth = ""; renderAll(); }
   function saveColl(c) { save(c.lsI, c.items); save(c.lsT, c.tombs); save(c.lsI + ".dirty", c.dirty); }
   function adopt(c, st) {
     c.items = (Array.isArray(st[c.list]) ? st[c.list] : []).map(function (x) { return c.name === "tasks" ? normTask(x) : x; });
@@ -559,8 +599,17 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
       }, 300);
     });
   }
+  function pullFinance() {
+    if (!pin) { fin = null; finState = "locked"; return Promise.resolve(); }
+    finState = fin ? "ok" : "loading";
+    return api("/hq/finance").then(function (j) {
+      if (j.ok) { fin = j.finance || { plan: null, budget: null, expenses: null, fixed: null, updatedAt: 0 }; finState = "ok"; }
+      else if (j.httpStatus === 401) return signOut("Your PIN stopped working. Sign in again.");
+      else finState = fin ? "ok" : "error";
+    }).catch(function () { finState = fin ? "ok" : "offline"; });
+  }
   function syncAll() {
-    return Promise.all([pullBrief()].concat(Object.keys(C).map(function (k) { return pull(C[k]); }))).then(function () { return pullActivity(); }).then(renderAll);
+    return Promise.all([pullBrief(), pullFinance()].concat(Object.keys(C).map(function (k) { return pull(C[k]); }))).then(function () { return pullActivity(); }).then(renderAll);
   }
 
   /* ---------- Home ---------- */
@@ -645,6 +694,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
   }
   function renderTiles() {
     $("tiles").innerHTML = data.links.map(function (l) {
+      if (l.url && l.url.charAt(0) === "#") return "<button type='button' class='tile' style='--c:" + esc(l.color) + "' data-goto-tab='" + esc(l.url.slice(1)) + "'><span class='e'>" + esc(l.emoji) + "</span><span class='t'>" + esc(l.name) + "</span></button>";
       return "<a class='tile' style='--c:" + esc(l.color) + "' href='" + esc(safeUrl(l.url)) + "' target='_blank' rel='noopener'><span class='e'>" + esc(l.emoji) + "</span><span class='t'>" + esc(l.name) + "</span></a>";
     }).join("");
   }
@@ -1120,23 +1170,171 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     if (so) so.addEventListener("click", function () { signOut(""); closeSheet(); });
   }
 
+  /* ---------- Plan & expenses (PIN-protected, Worker KV only) ---------- */
+  function fmtMoney(n) {
+    if (n == null || !isFinite(+n)) return "—";
+    const v = +n, abs = Math.abs(v), s = v < 0 ? "-" : "";
+    if (abs >= 1000000) return s + "$" + (abs / 1000000).toFixed(2) + "M";
+    return s + "$" + abs.toLocaleString(undefined, { minimumFractionDigits: abs % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  }
+  function fmtPct(n) { return (n == null || !isFinite(+n)) ? "—" : (Math.round(+n * 10) / 10) + "%"; }
+  function finChip(st) {
+    const k = String(st || "on_track").toLowerCase().replace(/\s+/g, "_");
+    const cls = k === "done" ? " done" : k === "behind" ? " behind" : "";
+    const txt = k === "done" ? "Done" : k === "behind" ? "Behind" : "On track";
+    return "<span class='fin-chip" + cls + "'>" + txt + "</span>";
+  }
+  function finWait(bot, note) {
+    return "<div class='fin-card wait'><div class='fin-row'><p class='fin-lbl'>Waiting for data</p><span class='fin-chip wait'>⏳ Waiting</span></div>" +
+      "<p class='fin-sub' style='color:var(--ink)'>Waiting for data from <strong>" + esc(bot) + "</strong></p>" +
+      (note ? "<p class='fin-sub' style='color:var(--muted);font-size:0.86rem'>" + esc(note) + "</p>" : "") + "</div>";
+  }
+  function renderFinance() {
+    const el = $("plan-view"); if (!el) return;
+    if (!pin) { el.innerHTML = lockHtml("Plan & expenses"); return; }
+    if (!fin && finState === "loading") { el.innerHTML = "<div class='fin-card wait'><p class='fin-sub'>Loading from Worker…</p></div>"; return; }
+    if (!fin && (finState === "error" || finState === "offline")) {
+      el.innerHTML = "<div class='fin-card wait'><p class='fin-sub'>" + (finState === "offline" ? "Offline. Can't load Plan & expenses." : "Couldn't load Plan & expenses.") + "</p><button class='btn' id='fin-retry' style='margin-top:10px'>↻ Try again</button></div>";
+      $("fin-retry").addEventListener("click", function () { pullFinance().then(renderFinance); });
+      return;
+    }
+    const f = fin || {};
+    const expColors = ["#a78bfa", "#60a5fa", "#22c7a9", "#ff5c8a", "#fbbf24", "#38bdf8", "#4ade80", "#fb923c", "#94a3b8"];
+    let html = "<div class='fin-jump'><a href='#fin-plan'>🎯 Plan</a><a href='#fin-budget'>📊 Budget</a><a href='#fin-expenses'>💸 Expenses</a><a href='#fin-lease'>🏠 Fixed</a><button type='button' class='fin-ref' id='fin-refresh'>↻</button></div>";
+
+    // 1. Business plan (W - Ops CEO)
+    html += "<section class='fin-sec' id='fin-plan'><h2 class='fin-h'>Business plan</h2>";
+    if (!f.plan) {
+      html += "<p class='fin-src'>Source: <strong>W - Ops CEO</strong></p>" + finWait("W - Ops CEO", "Yearly and quarterly goals will appear here once posted.");
+    } else {
+      const p = f.plan;
+      html += "<p class='fin-src'>From <strong>" + esc(p.by || "W - Ops CEO") + "</strong>" + (p.year ? " · " + esc(p.year) : "") + (p.updatedAt ? " · " + esc(fmtIsoET(new Date(p.updatedAt).toISOString())) : "") + (p.note ? " · " + esc(p.note) : "") + "</p>";
+      (p.yearly || []).forEach(function (g, idx) {
+        const col = g.status === "behind" ? "#fbbf24" : idx === 0 ? "#22c7a9" : "#38bdf8";
+        html += "<div class='fin-card' style='--c:" + col + "'><div class='fin-row'><p class='fin-lbl'>" + esc(g.label) + "</p>" + finChip(g.status) + "</div>" +
+          "<p class='fin-num'>" + esc(fmtMoney(g.amount)) + "</p>" +
+          (g.actual != null || g.sub ? "<p class='fin-sub'>" + (g.actual != null ? "Actual: " + esc(fmtMoney(g.actual)) + (g.sub ? " · " : "") : "") + esc(g.sub || "") + "</p>" : "") + "</div>";
+      });
+      if (p.quarters && p.quarters.length) {
+        html += "<div class='fin-grid2'>" + p.quarters.map(function (q) {
+          return "<div class='fin-qcard'><div class='fin-row'><p class='fin-lbl'>" + esc(q.label) + "</p>" + finChip(q.status) + "</div>" +
+            "<p class='fin-num'>" + esc(fmtMoney(q.amount)) + "</p>" +
+            (q.actual != null || q.sub ? "<p class='fin-sub'>" + (q.actual != null ? "Actual: " + esc(fmtMoney(q.actual)) + (q.sub ? " · " : "") : "") + esc(q.sub || "") + "</p>" : "") + "</div>";
+        }).join("") + "</div>";
+      }
+    }
+    html += "</section>";
+
+    // 2. Budget vs actual (Bud - Penguin Budget)
+    html += "<section class='fin-sec' id='fin-budget'><h2 class='fin-h'>Budget vs actual</h2>";
+    if (!f.budget) {
+      html += "<p class='fin-src'>Source: <strong>Bud - Penguin Budget</strong> (ServiceTitan margins)</p>" + finWait("Bud - Penguin Budget", "Revenue, replacement & service margins, labor, and overhead will appear here once posted.");
+    } else {
+      const b = f.budget;
+      html += "<p class='fin-src'>From <strong>" + esc(b.by || "Bud - Penguin Budget") + "</strong>" + (b.period ? " · " + esc(b.period) : "") + (b.updatedAt ? " · " + esc(fmtIsoET(new Date(b.updatedAt).toISOString())) : "") + (b.note ? " · " + esc(b.note) : "") + "</p>";
+      if (b.revenue) {
+        const pct = b.revenue.budget ? Math.min(100, Math.max(0, Math.round((b.revenue.actual / b.revenue.budget) * 100))) : 0;
+        html += "<div class='fin-card' style='--c:#3b82f6'><p class='fin-lbl'>Revenue</p><p class='fin-num'>" + esc(fmtMoney(b.revenue.actual)) + "</p>" +
+          "<p class='fin-sub'>" + (b.revenue.budget != null ? "Budget " + esc(fmtMoney(b.revenue.budget)) + " · " + pct + "% of plan" : "") + (b.revenue.sub ? " · " + esc(b.revenue.sub) : "") + "</p>" +
+          (b.revenue.budget ? "<div class='fin-bar-wrap'><div class='fin-bar' style='--c:#3b82f6;--w:" + pct + "%'><i></i></div></div>" : "") + "</div>";
+      }
+      (b.margins || []).forEach(function (m) {
+        const behind = m.status === "behind" || (m.actual != null && m.target != null && m.actual < m.target);
+        const col = behind ? "#fbbf24" : "#4ade80";
+        const w = m.actual != null ? Math.min(100, Math.max(0, m.actual)) : 0;
+        const t = m.target != null ? Math.min(100, Math.max(0, m.target)) : null;
+        html += "<div class='fin-card' style='--c:" + col + "'><p class='fin-lbl'>" + esc(m.label) + "</p>" +
+          "<div class='fin-row'><p class='fin-num'>" + esc(fmtPct(m.actual)) + "</p>" + finChip(behind ? "behind" : (m.status || "on_track")) + "</div>" +
+          "<p class='fin-sub'>" + (t != null ? "Target is " + esc(fmtPct(t)) + " (the white line)" : "") + (m.sub ? " · " + esc(m.sub) : "") + "</p>" +
+          "<div class='fin-bar-wrap'><div class='fin-bar' style='--c:" + col + ";--w:" + w + "%'><i></i>" + (t != null ? "<span class='fin-tgt' style='--t:" + t + "%'></span>" : "") + "</div>" +
+          (t != null ? "<p class='fin-tgt-lbl'>Actual " + esc(fmtPct(m.actual)) + " · target " + esc(fmtPct(t)) + "</p>" : "") + "</div></div>";
+      });
+      [["Labor", b.labor, "#22c7a9"], ["Overhead", b.overhead, "#22c7a9"]].forEach(function (pair) {
+        const lbl = pair[0], x = pair[1]; if (!x) return;
+        const over = x.budget != null && x.actual != null && x.actual > x.budget;
+        const pct = x.budget ? Math.min(100, Math.max(0, Math.round((x.actual / x.budget) * 100))) : 0;
+        const col = over ? "#f87171" : pair[2];
+        html += "<div class='fin-card' style='--c:" + col + "'><p class='fin-lbl'>" + esc(lbl) + "</p><p class='fin-num'>" + esc(fmtMoney(x.actual)) + "</p>" +
+          "<p class='fin-sub'>" + (x.budget != null ? "Budget " + esc(fmtMoney(x.budget)) + (over ? " · " + esc(fmtMoney(x.actual - x.budget)) + " over" : " · under budget") : "") + (x.sub ? " · " + esc(x.sub) : "") + "</p>" +
+          (x.budget ? "<div class='fin-bar-wrap'><div class='fin-bar" + (over ? " over" : "") + "' style='--c:" + col + ";--w:" + pct + "%'><i></i></div></div>" : "") + "</div>";
+      });
+    }
+    html += "</section>";
+
+    // 3. Expenses (QuickBooks Online, read-only through W - Quinn)
+    html += "<section class='fin-sec' id='fin-expenses'><h2 class='fin-h'>Expenses</h2>";
+    if (!f.expenses || !f.expenses.months || !f.expenses.months.length) {
+      html += "<p class='fin-src'>Source: <strong>QuickBooks Online</strong> (read-only, through <strong>W - Quinn</strong>)</p>" + finWait("W - Quinn", "Monthly spending by category will appear here.");
+    } else {
+      const ex = f.expenses, ms = ex.months;
+      const curM = ms.find(function (m) { return m.month === finMonth; }) || ms[0];
+      finMonth = curM.month;
+      html += "<p class='fin-src'>From <strong>" + esc(ex.source || ex.by || "QuickBooks Online (read-only)") + "</strong>" + (ex.updatedAt ? " · " + esc(fmtIsoET(new Date(ex.updatedAt).toISOString())) : "") + "</p>";
+      if (ms.length > 1) {
+        html += "<div class='fin-months'>" + ms.map(function (m) {
+          return "<button type='button' class='fin-mbtn' data-fin-m='" + esc(m.month) + "' aria-pressed='" + (m.month === curM.month) + "'>" + esc(m.label || m.month) + "</button>";
+        }).join("") + "</div>";
+      }
+      const cats = (curM.categories || []).slice().sort(function (a, b) { return b.amount - a.amount; });
+      const maxAmt = cats.reduce(function (mx, c) { return Math.max(mx, Math.abs(c.amount || 0)); }, 1);
+      html += "<div class='fin-card' style='--c:#a78bfa'><p class='fin-lbl'>" + esc(curM.label || curM.month) + " total</p>" +
+        "<p class='fin-num'>" + esc(fmtMoney(curM.total)) + "</p>" +
+        (curM.operatingTotal != null && curM.otherTotal ? "<p class='fin-sub'>Operating " + esc(fmtMoney(curM.operatingTotal)) + " + Other " + esc(fmtMoney(curM.otherTotal)) + "</p>" : (ex.note ? "<p class='fin-sub'>" + esc(ex.note) + "</p>" : "")) +
+        "<div class='fin-exp'>" + cats.map(function (c, i) {
+          const w = Math.max(2, Math.min(100, Math.round((Math.abs(c.amount || 0) / maxAmt) * 100)));
+          const col = expColors[i % expColors.length];
+          return "<div><div class='fin-exp-row'><span class='fin-exp-name'>" + esc(c.name) + "</span><span class='fin-exp-amt'>" + esc(fmtMoney(c.amount)) + "</span></div>" +
+            "<div class='fin-bar' style='--c:" + col + ";--w:" + w + "%'><i></i></div></div>";
+        }).join("") + "</div></div>";
+    }
+    html += "</section>";
+
+    // 4. Fixed costs
+    html += "<section class='fin-sec' id='fin-lease'><h2 class='fin-h'>Fixed costs</h2>";
+    if (!f.fixed || !f.fixed.items || !f.fixed.items.length) {
+      html += "<p class='fin-src'>Stored behind your PIN in Worker KV</p>" + finWait("HQ / W - Quinn", "Fixed monthly obligations and renewal reminders will appear here.");
+    } else {
+      const fx = f.fixed;
+      html += "<p class='fin-src'>" + esc(fx.note || "Stored behind your PIN in Worker KV") + "</p>";
+      fx.items.forEach(function (it) {
+        html += "<div class='fin-card' style='--c:#fb923c'><p class='fin-lbl'>" + esc(it.title) + (it.landlord ? " · " + esc(it.landlord) : "") + "</p>" +
+          (it.monthlyTotal != null ? "<p class='fin-num'>" + esc(fmtMoney(it.monthlyTotal)) + "<span style='font-size:1.05rem;font-family:var(--sans);font-weight:700;color:var(--muted)'> / month</span></p>" : "") +
+          (it.breakdown ? "<p class='fin-sub'>" + esc(it.breakdown) + "</p>" : "") +
+          (it.address ? "<p class='fin-sub' style='color:var(--muted)'>📍 " + esc(it.address) + "</p>" : "") +
+          (it.termEnd || it.renewedTo ? "<p class='fin-sub'>" + [it.termEnd, it.renewedTo].filter(Boolean).map(esc).join(" · ") + "</p>" : "") +
+          (it.escalation ? "<p class='fin-sub' style='color:var(--muted)'>" + esc(it.escalation) + "</p>" : "") +
+          (it.reminderTitle || it.reminderText ? "<div class='fin-remind'>" + (it.reminderTitle ? "<p class='when'>" + esc(it.reminderTitle) + "</p>" : "") + esc(it.reminderText || "") + "</div>" : "") +
+          "</div>";
+      });
+    }
+    html += "</section>";
+
+    el.innerHTML = html;
+    const rf = $("fin-refresh"); if (rf) rf.addEventListener("click", function () { rf.disabled = true; pullFinance().then(renderFinance); });
+    el.querySelectorAll("[data-fin-m]").forEach(function (b) {
+      b.addEventListener("click", function () { finMonth = b.getAttribute("data-fin-m"); renderFinance(); });
+    });
+  }
+
   /* ---------- Tabs + global clicks ---------- */
   function showTab(name) {
     tab = name;
     document.querySelectorAll(".tabbar button").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
     document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
-    $("hdr").textContent = { home: "HQ", board: "Board", work: "Workspaces", map: "Map", bots: "Your bots" }[name];
+    $("hdr").textContent = { home: "HQ", board: "Board", work: "Workspaces", plan: "Plan & expenses", map: "Map", bots: "Your bots" }[name];
+    if (name === "plan" && pin && !fin && finState !== "loading") pullFinance().then(renderFinance);
     try { window.dispatchEvent(new CustomEvent("hq:tab", { detail: name })); } catch (e) {}
     window.scrollTo(0, 0);
     try { history.replaceState(null, "", "#" + name + (name === "work" && wsOpen ? "/" + wsOpen : "")); } catch (e) {}
   }
   function renderAll() {
     $("gear-dot").classList.toggle("on", !!pin);
-    renderBrief(); renderNeeds(); renderHomeWs(); renderActivity(); renderBoard(); renderWork();
+    renderBrief(); renderNeeds(); renderHomeWs(); renderActivity(); renderBoard(); renderWork(); renderFinance();
     if (data.bots.length) renderBots();
   }
   document.addEventListener("click", function (e) {
     const s = e.target.closest("[data-signin]"); if (s) { openSettings(); return; }
+    const gt = e.target.closest("[data-goto-tab]"); if (gt) { showTab(gt.getAttribute("data-goto-tab")); return; }
     const w = e.target.closest("[data-ws]"); if (w) { wsOpen = w.getAttribute("data-ws"); wsStatus = wsOpen === "followups" ? "__open" : ""; sweep.loadedAt = 0; wsQ = ""; showTab("work"); renderWork(); return; }
     const t = e.target.closest("[data-edit-task]"); if (t) { editTask(t.getAttribute("data-edit-task")); return; }
     const r = e.target.closest("[data-edit-row]"); if (r) { const p = r.getAttribute("data-edit-row").split(":"); editRow(p[0], p.slice(1).join(":")); }
@@ -1156,7 +1354,7 @@ h1 { font-family: var(--serif); font-weight: 700; font-size: 2rem; letter-spacin
     renderTiles(); renderChips(); renderAll();
     const h = (location.hash || "").slice(1).split("/");
     if (h[0] === "work" && WS[h[1]]) wsOpen = h[1];
-    if (["home", "board", "work", "map", "bots"].indexOf(h[0]) !== -1) { showTab(h[0]); renderWork(); }
+    if (["home", "board", "work", "plan", "map", "bots"].indexOf(h[0]) !== -1) { showTab(h[0]); renderWork(); }
     if (h[0] === "tasks") showTab("board");
     if (pin) syncAll();
   }).catch(function () { $("bot-list").innerHTML = "<p class='empty'>Couldn't load. Pull down to refresh.</p>"; });

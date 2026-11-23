@@ -349,9 +349,9 @@
  ],
  "links": [
   {
-   "name": "Plan & expenses (example)",
+   "name": "Plan & expenses",
    "emoji": "📒",
-   "url": "./mockup-business.html",
+   "url": "#plan",
    "color": "#fbbf24"
   },
   {
