@@ -20,6 +20,17 @@ Open the link in Safari → Share → **Add to Home Screen**. The icon is a peng
 This page is **public**. `hq.json` holds only bot names, one-line roles, job names/schedules, and app links.
 The **board, workspaces, activity feed and daily brief** live in the Cloudflare Worker's KV and need RK's PIN, the **same PIN as the Video Library**. Because both apps share the origin `rkem1800-sketch.github.io`, a PIN saved in the Video Library in the same browser signs HQ in too, and signing out signs out both.
 
+
+## Business Plan & Expenses mockup
+
+A public, example-only preview lives at [`mockup-business.html`](https://rkem1800-sketch.github.io/penguin-hq/mockup-business.html). Every number is fake and labeled **EXAMPLE DATA — not real numbers**. It is not wired to QuickBooks, ServiceTitan, or any Worker. The Follow-ups tracker is unchanged.
+
+When real numbers go in, this page must stay empty of amounts, because GitHub Pages is public.
+
+**Recommend (a):** serve the real figures only from the existing PIN-protected Cloudflare Worker (`video-library-api`, or a sibling Worker like `penguin-hq-api`), the same way the board and Work trackers already work. The public HQ page stays a shell. RK signs in once with the PIN he already uses, and the Ops CEO, Bud, and Quinn bots can post updates with the write token they already have. QuickBooks stays read-only through Quinn.
+
+**Option (b)** is Cloudflare Access (email one-time code) on a separate workers.dev or Pages site. That is how **Penguin Pricing** is locked down (Zero Trust team `penguin19.cloudflareaccess.com`). A “Penguin Atlas” site was not found in this workspace. Access is a better fit if other staff need their own logins, but that tab would not live inside the public HQ app without moving it off GitHub Pages. For a tab RK opens in HQ, (a) is the simpler, safer fit.
+
 ## Files
 
 | File | What |

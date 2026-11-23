@@ -349,6 +349,12 @@
  ],
  "links": [
   {
+   "name": "Plan & expenses (example)",
+   "emoji": "📒",
+   "url": "./mockup-business.html",
+   "color": "#fbbf24"
+  },
+  {
    "name": "Video Library",
    "emoji": "🎬",
    "url": "https://rkem1800-sketch.github.io/video-library/",
